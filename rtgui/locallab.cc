@@ -170,6 +170,11 @@ Locallab::Locallab():
     ToolVBox* const panel = Gtk::manage(new ToolVBox());
     panel->set_spacing(2);
 
+    // Test
+    // TODO
+    SpotTreeView* const newGUI = Gtk::manage(new SpotTreeView());
+    panel->pack_start(*newGUI);
+
     // Add spot control panel to panel widget
     expsettings->setControlPanelListener(this);
     expsettings->setLevel(2);

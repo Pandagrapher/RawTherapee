@@ -92,6 +92,7 @@ set(NONCLISOURCEFILES
     lensprofile.cc
     localcontrast.cc
     locallab.cc
+    locallabspot.cc
     locallabtools.cc
     locallabtools2.cc
     lockablecolorpicker.cc

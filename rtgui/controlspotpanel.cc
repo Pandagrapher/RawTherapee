@@ -15,7 +15,7 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with RawTherapee.  If not, see <http://www.gnu.org/licenses/>.
- *  2018 Pierre Cabrera <pierre.cab@gmail.com>
+ *  2018-2020 Pierre Cabrera <pierre.cab@gmail.com>
  */
 
 #include "../rtengine/rt_math.h"
@@ -29,6 +29,279 @@ using namespace rtengine;
 using namespace procparams;
 
 extern Options options;
+
+/* ==== SpotTreeViewModel ==== */
+SpotTreeViewModel::SpotTreeViewModel()
+{
+    // Add TreeView columns to model
+    add(mouseOver);
+    add(optionKey);
+    add(spot);
+}
+
+/* ==== SpotTreeView ==== */
+SpotTreeView::SpotTreeView():
+    // SpotTreeView pixbufs
+    pixEmpty(Glib::RefPtr<Gdk::Pixbuf>()),
+    pixAdd(RTImage::createPixbufFromFile("add-small.png")),
+    pixDuplicate(RTImage::createPixbufFromFile("copy-small.png")),
+
+    // Internal variable
+    isOptionPressed(false),
+    oldName(""),
+    nameEditing(false)
+{
+    // Set SpotTreeView general appearance
+    set_grid_lines(Gtk::TREE_VIEW_GRID_LINES_VERTICAL);
+    get_selection()->set_mode(Gtk::SELECTION_BROWSE); // Avoid spot unselection
+
+    // Set SpotTreeView model
+    spotTreeModel = Gtk::ListStore::create(spots);
+    set_model(spotTreeModel);
+
+    // Create SpotTreeView columns and set associated event functions
+    // - 1st column: Add/Remove/Duplicate
+    auto const cell1 = Gtk::manage(new Gtk::CellRendererPixbuf());
+    cell1->set_fixed_size(pixAdd->get_width(), pixAdd->get_height()); // Set cell default size according to icon size
+    int cols_count = append_column("", *cell1);
+    auto const col1 = get_column(cols_count - 1);
+
+    if (col1) {
+        // Cell renderer function
+        col1->set_cell_data_func(
+            *cell1, sigc::mem_fun(
+                *this, &SpotTreeView::renderSpotManagement));
+    }
+
+    // - 2nd column: Name
+    auto const cell2 = Gtk::manage(new Gtk::CellRendererText());
+    cell2->property_editable() = true; // Set cell editable by user
+    cols_count = append_column(M("TP_LOCALLAB_COL_NAME"), *cell2);
+    auto const col2 = get_column(cols_count - 1);
+
+    if (col2) {
+        // Cell renderer function
+        col2->set_cell_data_func(
+            *cell2, sigc::mem_fun(
+                *this, &SpotTreeView::renderSpotName));
+    }
+
+    // Set cell editable event functions
+    cell2->signal_editing_started().connect(
+                        sigc::mem_fun(
+                            *this, &SpotTreeView::on_spotname_editing_started), false);
+    cell2->signal_edited().connect(
+            sigc::mem_fun(
+                *this, &SpotTreeView::on_spotname_edited));
+    cell2->signal_editing_canceled().connect(
+            sigc::mem_fun(
+                *this, &SpotTreeView::on_spotname_editing_canceled));
+
+    // - 3rd column: Shape
+    // TODO
+
+    // - 4th column: Normal/Excluded
+    // TODO
+
+    // - 5th column: Visibility
+    // TODO
+
+    // Set SpotTreeView general event functions
+    treeViewConn = get_selection()->signal_changed().connect(
+                         sigc::mem_fun(
+                             *this, &SpotTreeView::rowChanged));
+
+    // TODO Prevent ctrl+f
+
+    show_all();
+
+    treeViewConn.block(true);
+    auto row = *(spotTreeModel->append());
+    auto newSpot = new BaseSpot();
+    newSpot->setSpotName("Toto");
+    row[spots.spot] = std::shared_ptr<BaseSpot>(newSpot);
+    row = *(spotTreeModel->append());
+    newSpot = new BaseSpot();
+    newSpot->setSpotName("Titi");
+    row[spots.spot] = std::shared_ptr<BaseSpot>(newSpot);
+    set_cursor(spotTreeModel->get_path(row));
+    treeViewConn.block(false);
+}
+
+SpotTreeView::~SpotTreeView()
+{
+    // TODO
+}
+
+
+bool SpotTreeView::on_motion_notify_event(GdkEventMotion* motion_event)
+{
+    if (!nameEditing) { // Row appearance update deactivated when editing spot name to avoid canceling it
+        // Get cursor position
+        const int pos_x = static_cast<int>(motion_event->x);
+        const int pos_y = static_cast<int>(motion_event->y);
+        Gtk::TreeModel::Path path;
+        get_path_at_pos(pos_x, pos_y, path);
+
+        // Get associated row iter
+        const auto cursorIter = spotTreeModel->get_iter(path);
+
+        // Indicate mouseOver to associated row
+        for (auto &r : spotTreeModel->children()) {
+            if (r != cursorIter) {
+                r[spots.mouseOver] = false;
+            } else { // Row shown by cursor
+                r[spots.mouseOver] = true;
+            }
+        }
+    }
+
+    return true; // No need to propagate event further
+}
+
+bool SpotTreeView::on_leave_notify_event(GdkEventCrossing* crossing_event)
+{
+    if (!nameEditing) { // Row appearance update deactivated when editing spot name to avoid canceling it
+        // Reset all mouseOver indicators
+        for (auto &r : spotTreeModel->children()) {
+            r[spots.mouseOver] = false;
+        }
+    }
+
+    return true; // No need to propagate event further
+}
+
+bool SpotTreeView::on_key_press_event(GdkEventKey* key_event)
+{
+    if (!nameEditing) { // Row appearance update deactivated when editing spot name to avoid cancelling it
+        // Set 'option' key according to OS
+#ifdef __APPLE__
+        const int optionKey = GDK_MOD1_MASK; // 'option' key on macOS
+#else
+        const int optionKey = GDK_SHIFT_MASK; // 'shift' key otherwise
+#endif
+
+        if (key_event->keyval & optionKey) {
+            // Indicate that 'option' key is pressed
+            isOptionPressed = true;
+
+            for (auto &r : spotTreeModel->children()) {
+                r[spots.optionKey] = true;
+            }
+
+            return true; // No need to propagate event further
+        }
+    }
+
+    return false; // All other key pressed event are propagated
+}
+
+bool SpotTreeView::on_key_release_event(GdkEventKey* key_event)
+{
+    if (isOptionPressed) {
+        // Reset 'option' key pressed indicator
+        isOptionPressed = false;
+
+        for (auto &r : spotTreeModel->children()) {
+            r[spots.optionKey] = false;
+        }
+
+        return true; // No need to propagate event further
+    }
+
+    return false; // All other key pressed event are propagated
+}
+
+void SpotTreeView::on_spotname_editing_started(Gtk::CellEditable* editable, const Glib::ustring& path)
+{
+    printf("on_spotname_editing_started\n");
+
+    // Indicate that editing has started
+    nameEditing = true;
+
+    // Store actual spot name
+    auto const row = *(spotTreeModel->get_iter(path));
+    BaseSpot* const sp = row.get_value(spots.spot).get();
+
+    if (sp) {
+        oldName = sp->getSpotName();
+    }
+}
+
+void SpotTreeView::on_spotname_edited(const Glib::ustring& path, const Glib::ustring& new_text)
+{
+    printf("on_spotname_edited\n");
+
+    // Release keyboard event focus
+    // remove_modal_grab();
+
+    // Store new spot name
+    auto const row = *(spotTreeModel->get_iter(path));
+    BaseSpot* const sp = row.get_value(spots.spot).get();
+
+    if (sp) {
+        sp->setSpotName(new_text);
+    }
+
+    // Indicate that editing has stopped
+    nameEditing = false;
+}
+
+void SpotTreeView::on_spotname_editing_canceled()
+{
+    printf("on_spotname_editing_canceled\n");
+
+    // Indicate that editing has stopped
+    nameEditing = false;
+}
+
+void SpotTreeView::rowChanged()
+{
+    // TODO
+    printf("RowChanged\n");
+}
+
+
+bool SpotTreeView::spotManagementClicked(GdkEventButton* event)
+{
+    // TODO
+    printf("spotManagementClicked\n");
+
+    return true; // No need to propage event further
+}
+
+void SpotTreeView::renderSpotManagement(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter)
+{
+    const auto row = *iter;
+    Gtk::CellRendererPixbuf* const cp = static_cast<Gtk::CellRendererPixbuf*>(cell);
+
+    // Render spot management pixbuf
+    if (row[spots.mouseOver]) {
+        if (isOptionPressed) {
+            // Show duplicate action
+            cp->property_pixbuf() = pixDuplicate;
+        } else {
+            // Show add action
+            cp->property_pixbuf() = pixAdd;
+        }
+    } else {
+        // Show no action
+        cp->property_pixbuf() = pixEmpty;
+    }
+}
+
+void SpotTreeView::renderSpotName(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter)
+{
+    const auto row = *iter;
+    Gtk::CellRendererText* const ct = static_cast<Gtk::CellRendererText*>(cell);
+
+    // Render spot name text
+    BaseSpot* const sp = row.get_value(spots.spot).get();
+
+    if (sp) {
+        ct->property_text() = sp->getSpotName();
+    }
+}
 
 //-----------------------------------------------------------------------------
 // ControlSpotPanel
