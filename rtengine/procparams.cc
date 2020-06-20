@@ -1867,16 +1867,42 @@ LensProfParams::LcMode LensProfParams::getMethodNumber(const Glib::ustring& mode
 }
 
 PerspectiveParams::PerspectiveParams() :
+    method("simple"),
     horizontal(0.0),
-    vertical(0.0)
+    vertical(0.0),
+    camera_crop_factor(0.0),
+    camera_focal_length(0.0),
+    camera_pitch(0.0),
+    camera_roll(0.0),
+    camera_shift_horiz(0.0),
+    camera_shift_vert(0.0),
+    camera_yaw(0.0),
+    projection_pitch(0.0),
+    projection_rotate(0.0),
+    projection_shift_horiz(0.0),
+    projection_shift_vert(0.0),
+    projection_yaw(0.0)
 {
 }
 
 bool PerspectiveParams::operator ==(const PerspectiveParams& other) const
 {
     return
-        horizontal == other.horizontal
-        && vertical == other.vertical;
+        method == other.method
+        && horizontal == other.horizontal
+        && vertical == other.vertical
+        && camera_focal_length == other.camera_focal_length
+        && camera_crop_factor == other.camera_crop_factor
+        && camera_pitch == other.camera_pitch
+        && camera_roll == other.camera_roll
+        && camera_shift_horiz == other.camera_shift_horiz
+        && camera_shift_vert == other.camera_shift_vert
+        && camera_yaw == other.camera_yaw
+        && projection_shift_horiz == other.projection_shift_horiz
+        && projection_shift_vert == other.projection_shift_vert
+        && projection_rotate == other.projection_rotate
+        && projection_pitch == other.projection_pitch
+        && projection_yaw == other.projection_yaw;
 }
 
 bool PerspectiveParams::operator !=(const PerspectiveParams& other) const
@@ -2213,6 +2239,42 @@ WaveletParams::WaveletParams() :
     },
     opacityCurveSH{
         static_cast<double>(FCT_MinMaxCPoints),
+        0.,
+        1.,
+        0.35,
+        0.35,
+        0.15,
+        0.9,
+        0.35,
+        0.35,
+        0.4,
+        0.8,
+        0.35,
+        0.35,
+        0.4,
+        0.5,
+        0.35,
+        0.35,
+        0.5,
+        0.5,
+        0.35,
+        0.35,
+        0.5,
+        0.2,
+        0.35,
+        0.35,
+        0.8,
+        0.1,
+        0.35,
+        0.35,
+        1.0,
+        0.,
+        0.35,
+        0.35
+    },
+/*
+    opacityCurveSH{
+        static_cast<double>(FCT_MinMaxCPoints),
         0.0,
         1.,
         0.35,
@@ -2230,6 +2292,7 @@ WaveletParams::WaveletParams() :
         0.35,
         0.35
     },
+*/
     opacityCurveBY{
         static_cast<double>(FCT_MinMaxCPoints),
         0.0,
@@ -2283,7 +2346,7 @@ WaveletParams::WaveletParams() :
     enabled(false),
     median(false),
     medianlev(false),
-    linkedg(true),
+    linkedg(false),
     cbenab(false),
     greenlow(0),
     bluelow(0),
@@ -2295,7 +2358,7 @@ WaveletParams::WaveletParams() :
     balchrom(0.),
     chromfi(0.),
     chromco(0.),
-    mergeL(40.),
+    mergeL(20.),
     mergeC(20.),
     softrad(0.),
     softradend(0.),
@@ -2360,7 +2423,7 @@ WaveletParams::WaveletParams() :
     thres(7),
     chroma(5),
     chro(0),
-    threshold(5),
+    threshold(4),
     threshold2(5),
     edgedetect(90),
     edgedetectthr(20),
@@ -2578,7 +2641,7 @@ LocallabParams::LocallabSpot::LocallabSpot() :
     avoid(false),
     blwh(false),
     recurs(false),
-    laplac(false),
+    laplac(true),
     deltae(true),
     shortc(false),
     savrest(false),
@@ -2716,7 +2779,7 @@ LocallabParams::LocallabSpot::LocallabSpot() :
     special(false),
     toolcol(true),
     enaColorMask(false),
-    fftColorMask(false),
+    fftColorMask(true),
     CCmaskcurve{
         static_cast<double>(FCT_MinMaxCPoints),
         0.0,
@@ -2811,7 +2874,7 @@ LocallabParams::LocallabSpot::LocallabSpot() :
     black(0),
     shadex(0),
     shcompr(50),
-    expchroma(30),
+    expchroma(5),
     sensiex(60),
     structexp(0),
     blurexpde(5),
@@ -2891,7 +2954,7 @@ LocallabParams::LocallabSpot::LocallabSpot() :
     exnoiseMethod("none"),
     laplacexp(0.0),
     balanexp(1.0),
-    linear(0.3),
+    linear(0.05),
     gamm(0.4),
     fatamount(1.0),
     fatdetail(40.0),
@@ -3077,7 +3140,7 @@ LocallabParams::LocallabSpot::LocallabSpot() :
     strengr(0),
     scalegr(100),
     epsbl(0),
-    blMethod("guid"),
+    blMethod("blur"),
     chroMethod("lum"),
     blurMethod("norm"),
     medMethod("33"),
@@ -3110,6 +3173,7 @@ LocallabParams::LocallabSpot::LocallabSpot() :
         0.35,
         0.35
     },
+    showmaskblMethodtyp("blur"),
     CCmaskblcurve{
         static_cast<double>(FCT_MinMaxCPoints),
         0.0,
@@ -3165,6 +3229,7 @@ LocallabParams::LocallabSpot::LocallabSpot() :
     slomaskbl(0.0),
     lapmaskbl(0.0),
     shadmaskbl(0),
+    shadmaskblsha(0),
     strumaskbl(0.),
     Lmaskblcurve{
         static_cast<double>(DCT_NURBS),
@@ -3264,7 +3329,7 @@ LocallabParams::LocallabSpot::LocallabSpot() :
     expreti(false),
     complexreti(0),
     retinexMethod("high"),
-    str(0.2),
+    str(0.),
     chrrt(0.0),
     neigh(50.0),
     vart(150.0),
@@ -3924,6 +3989,7 @@ bool LocallabParams::LocallabSpot::operator ==(const LocallabSpot& other) const
         && sensiden == other.sensiden
         && detailthr == other.detailthr
         && locwavcurveden == other.locwavcurveden
+        && showmaskblMethodtyp == other.showmaskblMethodtyp
         && CCmaskblcurve == other.CCmaskblcurve
         && LLmaskblcurve == other.LLmaskblcurve
         && HHmaskblcurve == other.HHmaskblcurve
@@ -3937,6 +4003,7 @@ bool LocallabParams::LocallabSpot::operator ==(const LocallabSpot& other) const
         && slomaskbl == other.slomaskbl
         && lapmaskbl == other.lapmaskbl
         && shadmaskbl == other.shadmaskbl
+        && shadmaskblsha == other.shadmaskblsha
         && strumaskbl == other.strumaskbl
         && Lmaskblcurve == other.Lmaskblcurve
         && LLmaskblcurvewav == other.LLmaskblcurvewav
@@ -4090,7 +4157,7 @@ bool LocallabParams::LocallabSpot::operator ==(const LocallabSpot& other) const
         && radmasklc == other.radmasklc
         && chromasklc == other.chromasklc
         && Lmasklccurve == other.Lmasklccurve
-        // Constrast by detail levels
+        // Contrast by detail levels
         && visicbdl == other.visicbdl
         && expcbdl == other.expcbdl
         && complexcbdl == other.complexcbdl
@@ -5125,8 +5192,22 @@ int ProcParams::save(const Glib::ustring& fname, const Glib::ustring& fname2, bo
         saveToKeyfile(!pedited || pedited->lensProf.lfLens, "LensProfile", "LFLens", lensProf.lfLens, keyFile);
 
 // Perspective correction
+        saveToKeyfile(!pedited || pedited->perspective.method, "Perspective", "Method", perspective.method, keyFile);
         saveToKeyfile(!pedited || pedited->perspective.horizontal, "Perspective", "Horizontal", perspective.horizontal, keyFile);
         saveToKeyfile(!pedited || pedited->perspective.vertical, "Perspective", "Vertical", perspective.vertical, keyFile);
+        saveToKeyfile(!pedited || pedited->perspective.camera_crop_factor, "Perspective", "CameraCropFactor", perspective.camera_crop_factor, keyFile);
+        saveToKeyfile(!pedited || pedited->perspective.camera_focal_length, "Perspective", "CameraFocalLength", perspective.camera_focal_length, keyFile);
+        saveToKeyfile(!pedited || pedited->perspective.camera_pitch, "Perspective", "CameraPitch", perspective.camera_pitch, keyFile);
+        saveToKeyfile(!pedited || pedited->perspective.camera_roll, "Perspective", "CameraRoll", perspective.camera_roll, keyFile);
+        saveToKeyfile(!pedited || pedited->perspective.camera_shift_horiz, "Perspective", "CameraShiftHorizontal", perspective.camera_shift_horiz, keyFile);
+        saveToKeyfile(!pedited || pedited->perspective.camera_shift_vert, "Perspective", "CameraShiftVertical", perspective.camera_shift_vert, keyFile);
+        saveToKeyfile(!pedited || pedited->perspective.camera_yaw, "Perspective", "CameraYaw", perspective.camera_yaw, keyFile);
+        saveToKeyfile(!pedited || pedited->perspective.projection_shift_horiz, "Perspective", "ProjectionShiftHorizontal", perspective.projection_shift_horiz, keyFile);
+        saveToKeyfile(!pedited || pedited->perspective.projection_pitch, "Perspective", "ProjectionPitch", perspective.projection_pitch, keyFile);
+        saveToKeyfile(!pedited || pedited->perspective.projection_rotate, "Perspective", "ProjectionRotate", perspective.projection_rotate, keyFile);
+        saveToKeyfile(!pedited || pedited->perspective.projection_shift_horiz, "Perspective", "ProjectionShiftHorizontal", perspective.projection_shift_horiz, keyFile);
+        saveToKeyfile(!pedited || pedited->perspective.projection_shift_vert, "Perspective", "ProjectionShiftVertical", perspective.projection_shift_vert, keyFile);
+        saveToKeyfile(!pedited || pedited->perspective.projection_yaw, "Perspective", "ProjectionYaw", perspective.projection_yaw, keyFile);
 
 // Gradient
         saveToKeyfile(!pedited || pedited->gradient.enabled, "Gradient", "Enabled", gradient.enabled, keyFile);
@@ -5207,6 +5288,7 @@ int ProcParams::save(const Glib::ustring& fname, const Glib::ustring& fname2, bo
                     saveToKeyfile(!pedited || spot_edited->strcolh, "Locallab", "Strcolh_" + index_str, spot.strcolh, keyFile);
                     saveToKeyfile(!pedited || spot_edited->angcol, "Locallab", "Angcol_" + index_str, spot.angcol, keyFile);
                     saveToKeyfile(!pedited || spot_edited->blurcolde, "Locallab", "Blurcolde_" + index_str, spot.blurcolde, keyFile);
+                    saveToKeyfile(!pedited || spot_edited->blurcol, "Locallab", "Blurcol_" + index_str, spot.blurcol, keyFile);
                     saveToKeyfile(!pedited || spot_edited->contcol, "Locallab", "Contcol_" + index_str, spot.contcol, keyFile);
                     saveToKeyfile(!pedited || spot_edited->blendmaskcol, "Locallab", "Blendmaskcol_" + index_str, spot.blendmaskcol, keyFile);
                     saveToKeyfile(!pedited || spot_edited->radmaskcol, "Locallab", "Radmaskcol_" + index_str, spot.radmaskcol, keyFile);
@@ -5397,6 +5479,7 @@ int ProcParams::save(const Glib::ustring& fname, const Glib::ustring& fname2, bo
                     saveToKeyfile(!pedited || spot_edited->sensiden, "Locallab", "Sensiden_" + index_str, spot.sensiden, keyFile);
                     saveToKeyfile(!pedited || spot_edited->detailthr, "Locallab", "Detailthr_" + index_str, spot.detailthr, keyFile);
                     saveToKeyfile(!pedited || spot_edited->locwavcurveden, "Locallab", "LocwavCurveden_" + index_str, spot.locwavcurveden, keyFile);
+                    saveToKeyfile(!pedited || spot_edited->showmaskblMethodtyp, "Locallab", "Showmasktyp_" + index_str, spot.showmaskblMethodtyp, keyFile);
                     saveToKeyfile(!pedited || spot_edited->CCmaskblcurve, "Locallab", "CCmaskblCurve_" + index_str, spot.CCmaskblcurve, keyFile);
                     saveToKeyfile(!pedited || spot_edited->LLmaskblcurve, "Locallab", "LLmaskblCurve_" + index_str, spot.LLmaskblcurve, keyFile);
                     saveToKeyfile(!pedited || spot_edited->HHmaskblcurve, "Locallab", "HHmaskblCurve_" + index_str, spot.HHmaskblcurve, keyFile);
@@ -5410,6 +5493,7 @@ int ProcParams::save(const Glib::ustring& fname, const Glib::ustring& fname2, bo
                     saveToKeyfile(!pedited || spot_edited->slomaskbl, "Locallab", "Slomaskbl_" + index_str, spot.slomaskbl, keyFile);
                     saveToKeyfile(!pedited || spot_edited->lapmaskbl, "Locallab", "Lapmaskbl_" + index_str, spot.lapmaskbl, keyFile);
                     saveToKeyfile(!pedited || spot_edited->shadmaskbl, "Locallab", "shadmaskbl_" + index_str, spot.shadmaskbl, keyFile);
+                    saveToKeyfile(!pedited || spot_edited->shadmaskblsha, "Locallab", "shadmaskblsha_" + index_str, spot.shadmaskblsha, keyFile);
                     saveToKeyfile(!pedited || spot_edited->strumaskbl, "Locallab", "strumaskbl_" + index_str, spot.strumaskbl, keyFile);
                     saveToKeyfile(!pedited || spot_edited->Lmaskblcurve, "Locallab", "LmaskblCurve_" + index_str, spot.Lmaskblcurve, keyFile);
                     saveToKeyfile(!pedited || spot_edited->LLmaskblcurvewav, "Locallab", "LLmaskblCurvewav_" + index_str, spot.LLmaskblcurvewav, keyFile);
@@ -6738,8 +6822,21 @@ int ProcParams::load(const Glib::ustring& fname, ParamsEdited* pedited)
         }
 
         if (keyFile.has_group("Perspective")) {
+            assignFromKeyfile(keyFile, "Perspective", "Method", pedited, perspective.method, pedited->perspective.method);
             assignFromKeyfile(keyFile, "Perspective", "Horizontal", pedited, perspective.horizontal, pedited->perspective.horizontal);
             assignFromKeyfile(keyFile, "Perspective", "Vertical", pedited, perspective.vertical, pedited->perspective.vertical);
+            assignFromKeyfile(keyFile, "Perspective", "CameraShiftHorizontal", pedited, perspective.camera_shift_horiz, pedited->perspective.camera_shift_horiz);
+            assignFromKeyfile(keyFile, "Perspective", "CameraShiftVertical", pedited, perspective.camera_shift_vert, pedited->perspective.camera_shift_vert);
+            assignFromKeyfile(keyFile, "Perspective", "CameraPitch", pedited, perspective.camera_pitch, pedited->perspective.camera_pitch);
+            assignFromKeyfile(keyFile, "Perspective", "CameraRoll", pedited, perspective.camera_roll, pedited->perspective.camera_roll);
+            assignFromKeyfile(keyFile, "Perspective", "CameraCropFactor", pedited, perspective.camera_crop_factor, pedited->perspective.camera_crop_factor);
+            assignFromKeyfile(keyFile, "Perspective", "CameraFocalLength", pedited, perspective.camera_focal_length, pedited->perspective.camera_focal_length);
+            assignFromKeyfile(keyFile, "Perspective", "CameraYaw", pedited, perspective.camera_yaw, pedited->perspective.camera_yaw);
+            assignFromKeyfile(keyFile, "Perspective", "ProjectionPitch", pedited, perspective.projection_pitch, pedited->perspective.projection_pitch);
+            assignFromKeyfile(keyFile, "Perspective", "ProjectionRotate", pedited, perspective.projection_rotate, pedited->perspective.projection_rotate);
+            assignFromKeyfile(keyFile, "Perspective", "ProjectionShiftHorizontal", pedited, perspective.projection_shift_horiz, pedited->perspective.projection_shift_horiz);
+            assignFromKeyfile(keyFile, "Perspective", "ProjectionShiftVertical", pedited, perspective.projection_shift_vert, pedited->perspective.projection_shift_vert);
+            assignFromKeyfile(keyFile, "Perspective", "ProjectionYaw", pedited, perspective.projection_yaw, pedited->perspective.projection_yaw);
         }
 
         if (keyFile.has_group("Gradient")) {
@@ -7058,6 +7155,7 @@ int ProcParams::load(const Glib::ustring& fname, ParamsEdited* pedited)
                 assignFromKeyfile(keyFile, "Locallab", "Sensiden_" + index_str, pedited, spot.sensiden, spotEdited.sensiden);
                 assignFromKeyfile(keyFile, "Locallab", "Detailthr_" + index_str, pedited, spot.detailthr, spotEdited.detailthr);
                 assignFromKeyfile(keyFile, "Locallab", "LocwavCurveden_" + index_str, pedited, spot.locwavcurveden, spotEdited.locwavcurveden);
+                assignFromKeyfile(keyFile, "Locallab", "Showmasktyp_" + index_str, pedited, spot.showmaskblMethodtyp, spotEdited.showmaskblMethodtyp);
                 assignFromKeyfile(keyFile, "Locallab", "CCmaskblCurve_" + index_str, pedited, spot.CCmaskblcurve, spotEdited.CCmaskblcurve);
                 assignFromKeyfile(keyFile, "Locallab", "LLmaskblCurve_" + index_str, pedited, spot.LLmaskblcurve, spotEdited.LLmaskblcurve);
                 assignFromKeyfile(keyFile, "Locallab", "HHmaskblCurve_" + index_str, pedited, spot.HHmaskblcurve, spotEdited.HHmaskblcurve);
@@ -7071,6 +7169,7 @@ int ProcParams::load(const Glib::ustring& fname, ParamsEdited* pedited)
                 assignFromKeyfile(keyFile, "Locallab", "Slomaskbl_" + index_str, pedited, spot.slomaskbl, spotEdited.slomaskbl);
                 assignFromKeyfile(keyFile, "Locallab", "Lapmaskbl_" + index_str, pedited, spot.lapmaskbl, spotEdited.lapmaskbl);
                 assignFromKeyfile(keyFile, "Locallab", "shadmaskbl_" + index_str, pedited, spot.shadmaskbl, spotEdited.shadmaskbl);
+                assignFromKeyfile(keyFile, "Locallab", "shadmaskblsha_" + index_str, pedited, spot.shadmaskblsha, spotEdited.shadmaskblsha);
                 assignFromKeyfile(keyFile, "Locallab", "strumaskbl_" + index_str, pedited, spot.strumaskbl, spotEdited.strumaskbl);
                 assignFromKeyfile(keyFile, "Locallab", "LmaskblCurve_" + index_str, pedited, spot.Lmaskblcurve, spotEdited.Lmaskblcurve);
                 assignFromKeyfile(keyFile, "Locallab", "LLmaskblCurvewav_" + index_str, pedited, spot.LLmaskblcurvewav, spotEdited.LLmaskblcurvewav);
@@ -7568,7 +7667,7 @@ int ProcParams::load(const Glib::ustring& fname, ParamsEdited* pedited)
             assignFromKeyfile(keyFile, "Wavelet", "ContrastCurve", pedited, wavelet.ccwcurve, pedited->wavelet.ccwcurve);
             assignFromKeyfile(keyFile, "Wavelet", "blcurve", pedited, wavelet.blcurve, pedited->wavelet.blcurve);
             assignFromKeyfile(keyFile, "Wavelet", "OpacityCurveRG", pedited, wavelet.opacityCurveRG, pedited->wavelet.opacityCurveRG);
-            assignFromKeyfile(keyFile, "Wavelet", "Levelshc", pedited, wavelet.opacityCurveSH, pedited->wavelet.opacityCurveSH);
+            assignFromKeyfile(keyFile, "Wavelet", "Levalshc", pedited, wavelet.opacityCurveSH, pedited->wavelet.opacityCurveSH);
             assignFromKeyfile(keyFile, "Wavelet", "OpacityCurveBY", pedited, wavelet.opacityCurveBY, pedited->wavelet.opacityCurveBY);
             assignFromKeyfile(keyFile, "Wavelet", "OpacityCurveW", pedited, wavelet.opacityCurveW, pedited->wavelet.opacityCurveW);
             assignFromKeyfile(keyFile, "Wavelet", "OpacityCurveWL", pedited, wavelet.opacityCurveWL, pedited->wavelet.opacityCurveWL);

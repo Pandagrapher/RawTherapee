@@ -948,7 +948,7 @@ void Locallab::setDefaults(const rtengine::procparams::ProcParams* defParams, co
     // Set default values in spot panel control
     expsettings->setDefaults(defParams, pedited);
 
-    // Set defaut values in Locallab tools
+    // Set default values in Locallab tools
     for (auto tool : locallabTools) {
         tool->setDefaults(defParams, pedited);
     }
@@ -1102,6 +1102,9 @@ void Locallab::foldAllButOne(LocallabTool* except)
 
 void Locallab::openAllTools()
 {
+    // Set default visibility for settings panel sub-expanders
+    expsettings->setDefaultExpanderVisibility();
+
     for (auto tool : locallabTools) {
         tool->setExpanded(true);
 

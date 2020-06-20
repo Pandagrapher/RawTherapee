@@ -338,8 +338,21 @@ void ParamsEdited::set(bool v)
     lensProf.lfCameraMake = v;
     lensProf.lfCameraModel = v;
     lensProf.lfLens = v;
+    perspective.method = v;
     perspective.horizontal = v;
     perspective.vertical = v;
+    perspective.camera_crop_factor = v;
+    perspective.camera_focal_length = v;
+    perspective.camera_pitch = v;
+    perspective.camera_roll = v;
+    perspective.camera_shift_horiz = v;
+    perspective.camera_shift_vert = v;
+    perspective.camera_yaw = v;
+    perspective.projection_pitch = v;
+    perspective.projection_rotate = v;
+    perspective.projection_shift_horiz = v;
+    perspective.projection_shift_vert = v;
+    perspective.projection_yaw = v;
     gradient.enabled = v;
     gradient.degree = v;
     gradient.feather = v;
@@ -528,9 +541,9 @@ void ParamsEdited::set(bool v)
     wavelet.HSmethod = v;
     wavelet.Dirmethod = v;
     wavelet.sigma = v;
-    wavelet.sigma = v;
     wavelet.offset = v;
     wavelet.lowthr = v;
+    wavelet.rescon = v;
     wavelet.resconH = v;
     wavelet.reschro = v;
     wavelet.resblur = v;
@@ -978,8 +991,21 @@ void ParamsEdited::initFrom(const std::vector<rtengine::procparams::ProcParams>&
         lensProf.lfCameraMake = lensProf.lfCameraMake && p.lensProf.lfCameraMake == other.lensProf.lfCameraMake;
         lensProf.lfCameraModel = lensProf.lfCameraModel && p.lensProf.lfCameraModel == other.lensProf.lfCameraModel;
         lensProf.lfLens = lensProf.lfLens && p.lensProf.lfLens == other.lensProf.lfLens;
+        perspective.method = perspective.method && p.perspective.method == other.perspective.method;
         perspective.horizontal = perspective.horizontal && p.perspective.horizontal == other.perspective.horizontal;
         perspective.vertical = perspective.vertical && p.perspective.vertical == other.perspective.vertical;
+        perspective.camera_crop_factor = perspective.camera_crop_factor && p.perspective.camera_crop_factor == other.perspective.camera_crop_factor;
+        perspective.camera_focal_length = perspective.camera_focal_length && p.perspective.camera_focal_length == other.perspective.camera_focal_length;
+        perspective.camera_pitch = perspective.camera_pitch && p.perspective.camera_pitch == other.perspective.camera_pitch;
+        perspective.camera_roll = perspective.camera_roll && p.perspective.camera_roll == other.perspective.camera_roll;
+        perspective.camera_shift_horiz = perspective.camera_shift_horiz && p.perspective.camera_shift_horiz == other.perspective.camera_shift_horiz;
+        perspective.camera_shift_vert = perspective.camera_shift_vert && p.perspective.camera_shift_vert == other.perspective.camera_shift_vert;
+        perspective.projection_pitch = perspective.projection_pitch && p.perspective.projection_pitch == other.perspective.projection_pitch;
+        perspective.camera_yaw = perspective.camera_yaw && p.perspective.camera_yaw == other.perspective.camera_yaw;
+        perspective.projection_rotate = perspective.projection_rotate && p.perspective.projection_rotate == other.perspective.projection_rotate;
+        perspective.projection_shift_horiz = perspective.projection_shift_horiz && p.perspective.projection_shift_horiz == other.perspective.projection_shift_horiz;
+        perspective.projection_shift_vert = perspective.projection_shift_vert && p.perspective.projection_shift_vert == other.perspective.projection_shift_vert;
+        perspective.projection_yaw = perspective.projection_yaw && p.perspective.projection_yaw == other.perspective.projection_yaw;
         gradient.enabled = gradient.enabled && p.gradient.enabled == other.gradient.enabled;
         gradient.degree = gradient.degree && p.gradient.degree == other.gradient.degree;
         gradient.feather = gradient.feather && p.gradient.feather == other.gradient.feather;
@@ -1241,6 +1267,7 @@ void ParamsEdited::initFrom(const std::vector<rtengine::procparams::ProcParams>&
                 locallab.spots.at(j).sensiden = locallab.spots.at(j).sensiden && pSpot.sensiden == otherSpot.sensiden;
                 locallab.spots.at(j).detailthr = locallab.spots.at(j).detailthr && pSpot.detailthr == otherSpot.detailthr;
                 locallab.spots.at(j).locwavcurveden = locallab.spots.at(j).locwavcurveden && pSpot.locwavcurveden == otherSpot.locwavcurveden;
+                locallab.spots.at(j).showmaskblMethodtyp = locallab.spots.at(j).showmaskblMethodtyp && pSpot.showmaskblMethodtyp == otherSpot.showmaskblMethodtyp;
                 locallab.spots.at(j).CCmaskblcurve = locallab.spots.at(j).CCmaskblcurve && pSpot.CCmaskblcurve == otherSpot.CCmaskblcurve;
                 locallab.spots.at(j).LLmaskblcurve = locallab.spots.at(j).LLmaskblcurve && pSpot.LLmaskblcurve == otherSpot.LLmaskblcurve;
                 locallab.spots.at(j).HHmaskblcurve = locallab.spots.at(j).HHmaskblcurve && pSpot.HHmaskblcurve == otherSpot.HHmaskblcurve;
@@ -1254,6 +1281,7 @@ void ParamsEdited::initFrom(const std::vector<rtengine::procparams::ProcParams>&
                 locallab.spots.at(j).slomaskbl = locallab.spots.at(j).slomaskbl && pSpot.slomaskbl == otherSpot.slomaskbl;
                 locallab.spots.at(j).lapmaskbl = locallab.spots.at(j).lapmaskbl && pSpot.lapmaskbl == otherSpot.lapmaskbl;
                 locallab.spots.at(j).shadmaskbl = locallab.spots.at(j).shadmaskbl && pSpot.shadmaskbl == otherSpot.shadmaskbl;
+                locallab.spots.at(j).shadmaskblsha = locallab.spots.at(j).shadmaskblsha && pSpot.shadmaskblsha == otherSpot.shadmaskblsha;
                 locallab.spots.at(j).strumaskbl = locallab.spots.at(j).strumaskbl && pSpot.strumaskbl == otherSpot.strumaskbl;
                 locallab.spots.at(j).Lmaskblcurve = locallab.spots.at(j).Lmaskblcurve && pSpot.Lmaskblcurve == otherSpot.Lmaskblcurve;
                 locallab.spots.at(j).LLmaskblcurvewav = locallab.spots.at(j).LLmaskblcurvewav && pSpot.LLmaskblcurvewav == otherSpot.LLmaskblcurvewav;
@@ -2898,12 +2926,64 @@ void ParamsEdited::combine(rtengine::procparams::ProcParams& toEdit, const rteng
         toEdit.lensProf.lfLens = mods.lensProf.lfLens;
     }
 
+    if (perspective.method) {
+        toEdit.perspective.method = mods.perspective.method;
+    }
+
     if (perspective.horizontal) {
         toEdit.perspective.horizontal = dontforceSet && options.baBehav[ADDSET_PERSPECTIVE] ? toEdit.perspective.horizontal + mods.perspective.horizontal : mods.perspective.horizontal;
     }
 
     if (perspective.vertical) {
         toEdit.perspective.vertical = dontforceSet && options.baBehav[ADDSET_PERSPECTIVE] ? toEdit.perspective.vertical + mods.perspective.vertical : mods.perspective.vertical;
+    }
+
+    if (perspective.camera_crop_factor) {
+        toEdit.perspective.camera_crop_factor = dontforceSet && options.baBehav[ADDSET_PERSP_CAM_FOCAL_LENGTH] ? toEdit.perspective.camera_crop_factor + mods.perspective.camera_crop_factor : mods.perspective.camera_crop_factor;
+    }
+
+    if (perspective.camera_focal_length) {
+        toEdit.perspective.camera_focal_length = dontforceSet && options.baBehav[ADDSET_PERSP_CAM_FOCAL_LENGTH] ? toEdit.perspective.camera_focal_length + mods.perspective.camera_focal_length : mods.perspective.camera_focal_length;
+    }
+
+    if (perspective.camera_pitch) {
+        toEdit.perspective.camera_pitch = dontforceSet && options.baBehav[ADDSET_PERSP_CAM_ANGLE] ? toEdit.perspective.camera_pitch + mods.perspective.camera_pitch : mods.perspective.camera_pitch;
+    }
+
+    if (perspective.camera_roll) {
+        toEdit.perspective.camera_roll = dontforceSet && options.baBehav[ADDSET_PERSP_CAM_ANGLE] ? toEdit.perspective.camera_roll + mods.perspective.camera_roll : mods.perspective.camera_roll;
+    }
+
+    if (perspective.camera_shift_horiz) {
+        toEdit.perspective.camera_shift_horiz = dontforceSet && options.baBehav[ADDSET_PERSP_CAM_SHIFT] ? toEdit.perspective.camera_shift_horiz + mods.perspective.camera_shift_horiz : mods.perspective.camera_shift_horiz;
+    }
+
+    if (perspective.camera_shift_vert) {
+        toEdit.perspective.camera_shift_vert = dontforceSet && options.baBehav[ADDSET_PERSP_CAM_SHIFT] ? toEdit.perspective.camera_shift_vert + mods.perspective.camera_shift_vert : mods.perspective.camera_shift_vert;
+    }
+
+    if (perspective.camera_yaw) {
+        toEdit.perspective.camera_yaw = dontforceSet && options.baBehav[ADDSET_PERSP_CAM_ANGLE] ? toEdit.perspective.camera_yaw + mods.perspective.camera_yaw : mods.perspective.camera_yaw;
+    }
+
+    if (perspective.projection_pitch) {
+        toEdit.perspective.projection_pitch = dontforceSet && options.baBehav[ADDSET_PERSP_PROJ_ANGLE] ? toEdit.perspective.projection_pitch + mods.perspective.projection_pitch : mods.perspective.projection_pitch;
+    }
+
+    if (perspective.projection_rotate) {
+        toEdit.perspective.projection_rotate = dontforceSet && options.baBehav[ADDSET_PERSP_PROJ_ROTATE] ? toEdit.perspective.projection_rotate + mods.perspective.projection_rotate : mods.perspective.projection_rotate;
+    }
+
+    if (perspective.projection_shift_horiz) {
+        toEdit.perspective.projection_shift_horiz = dontforceSet && options.baBehav[ADDSET_PERSP_PROJ_SHIFT] ? toEdit.perspective.projection_shift_horiz + mods.perspective.projection_shift_horiz : mods.perspective.projection_shift_horiz;
+    }
+
+    if (perspective.projection_shift_vert) {
+        toEdit.perspective.projection_shift_vert = dontforceSet && options.baBehav[ADDSET_PERSP_PROJ_SHIFT] ? toEdit.perspective.projection_shift_vert + mods.perspective.projection_shift_vert : mods.perspective.projection_shift_vert;
+    }
+
+    if (perspective.projection_yaw) {
+        toEdit.perspective.projection_yaw = dontforceSet && options.baBehav[ADDSET_PERSP_PROJ_ANGLE] ? toEdit.perspective.projection_yaw + mods.perspective.projection_yaw : mods.perspective.projection_yaw;
     }
 
     if (gradient.enabled) {
@@ -3893,6 +3973,10 @@ void ParamsEdited::combine(rtengine::procparams::ProcParams& toEdit, const rteng
             toEdit.locallab.spots.at(i).locwavcurveden = mods.locallab.spots.at(i).locwavcurveden;
         }
 
+        if (locallab.spots.at(i).showmaskblMethodtyp) {
+            toEdit.locallab.spots.at(i).showmaskblMethodtyp = mods.locallab.spots.at(i).showmaskblMethodtyp;
+        }
+
         if (locallab.spots.at(i).CCmaskblcurve) {
             toEdit.locallab.spots.at(i).CCmaskblcurve = mods.locallab.spots.at(i).CCmaskblcurve;
         }
@@ -3943,6 +4027,10 @@ void ParamsEdited::combine(rtengine::procparams::ProcParams& toEdit, const rteng
 
         if (locallab.spots.at(i).shadmaskbl) {
             toEdit.locallab.spots.at(i).shadmaskbl = mods.locallab.spots.at(i).shadmaskbl;
+        }
+
+        if (locallab.spots.at(i).shadmaskblsha) {
+            toEdit.locallab.spots.at(i).shadmaskblsha = mods.locallab.spots.at(i).shadmaskblsha;
         }
 
         if (locallab.spots.at(i).strumaskbl) {
@@ -6056,6 +6144,7 @@ LocallabParamsEdited::LocallabSpotEdited::LocallabSpotEdited(bool v) :
     sensiden(v),
     detailthr(v),
     locwavcurveden(v),
+    showmaskblMethodtyp(v),
     CCmaskblcurve(v),
     LLmaskblcurve(v),
     HHmaskblcurve(v),
@@ -6069,6 +6158,7 @@ LocallabParamsEdited::LocallabSpotEdited::LocallabSpotEdited(bool v) :
     slomaskbl(v),
     lapmaskbl(v),
     shadmaskbl(v),
+    shadmaskblsha(v),
     strumaskbl(v),
     Lmaskblcurve(v),
     LLmaskblcurvewav(v),
@@ -6510,6 +6600,7 @@ void LocallabParamsEdited::LocallabSpotEdited::set(bool v)
     sensiden = v;
     detailthr = v;
     locwavcurveden = v;
+    showmaskblMethodtyp = v;
     CCmaskblcurve = v;
     LLmaskblcurve = v;
     HHmaskblcurve = v;
@@ -6523,6 +6614,7 @@ void LocallabParamsEdited::LocallabSpotEdited::set(bool v)
     slomaskbl = v;
     lapmaskbl = v;
     shadmaskbl = v;
+    shadmaskblsha = v;
     strumaskbl = v;
     Lmaskblcurve = v;
     LLmaskblcurvewav = v;

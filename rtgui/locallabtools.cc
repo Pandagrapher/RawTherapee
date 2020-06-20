@@ -227,7 +227,7 @@ void LocallabTool::removeLocallabTool(bool raiseEvent)
         disableListener();
         exp->setEnabled(false);
         enableListener();
-        // Note: Mask views are all resetted when removing tool (in toolpanelcoord.cc)
+        // Note: Mask views are all reset when removing tool (in toolpanelcoord.cc)
 
         // Raise event if required refreshing image
         if (raiseEvent && listener) {
@@ -399,7 +399,7 @@ LocallabColor::LocallabColor():
     sensi(Gtk::manage(new Adjuster(M("TP_LOCALLAB_SENSI"), 0, 100, 1, 15))),
     structcol(Gtk::manage(new Adjuster(M("TP_LOCALLAB_STRUCCOL1"), 0, 100, 1, 0))),
     blurcolde(Gtk::manage(new Adjuster(M("TP_LOCALLAB_BLURDE"), 2, 100, 1, 5))),
-    softradiuscol(Gtk::manage(new Adjuster(M("TP_LOCALLAB_SOFTRADIUSCOL"), -10.0, 1000.0, 0.5, 0.))),
+    softradiuscol(Gtk::manage(new Adjuster(M("TP_LOCALLAB_SOFTRADIUSCOL"), 0.0, 1000.0, 0.5, 0.))),
     invers(Gtk::manage(new Gtk::CheckButton(M("TP_LOCALLAB_INVERS")))),
     expgradcol(Gtk::manage(new MyExpander(false, M("TP_LOCALLAB_EXPGRAD")))),
     strcol(Gtk::manage(new Adjuster(M("TP_LOCALLAB_GRADSTRLUM"), -4., 4., 0.05, 0.))),
@@ -499,7 +499,7 @@ LocallabColor::LocallabColor():
 
     blurcolde->setAdjusterListener(this);
 
-    softradiuscol->setLogScale(10, -10);
+    softradiuscol->setLogScale(10, 0);
     softradiuscol->setAdjusterListener(this);
 
     inversConn = invers->signal_toggled().connect(sigc::mem_fun(*this, &LocallabColor::inversChanged));
@@ -516,7 +516,6 @@ LocallabColor::LocallabColor():
     strcolh->set_tooltip_text(M("TP_LOCALLAB_GRADSTRHUE_TOOLTIP"));
 
     angcol->setAdjusterListener(this);
-    angcol->set_tooltip_text(M("TP_LOCALLAB_GRADANG_TOOLTIP"));
 
     setExpandAlignProperties(expcurvcol, true, false, Gtk::ALIGN_FILL, Gtk::ALIGN_START);
 
@@ -881,6 +880,7 @@ void LocallabColor::updateAdviceTooltips(const bool showTooltips)
         structcol->set_tooltip_text(M("TP_LOCALLAB_STRUCT_TOOLTIP"));
         sensi->set_tooltip_text(M("TP_LOCALLAB_SENSI_TOOLTIP"));
         strcol->set_tooltip_text(M("TP_LOCALLAB_GRADGEN_TOOLTIP"));
+        angcol->set_tooltip_text(M("TP_LOCALLAB_GRADANG_TOOLTIP"));
         qualitycurveMethod->set_tooltip_markup(M("TP_LOCALLAB_CURVEMETHOD_TOOLTIP"));
         mercol->set_tooltip_text(M("TP_LOCALLAB_MERGEMER_TOOLTIP"));
         opacol->set_tooltip_text(M("TP_LOCALLAB_MERGEOPA_TOOLTIP"));
@@ -898,11 +898,16 @@ void LocallabColor::updateAdviceTooltips(const bool showTooltips)
         blendmaskcol->set_tooltip_text(M("TP_LOCALLAB_BLENDMASK_TOOLTIP"));
         struFrame->set_tooltip_text(M("TP_LOCALLAB_STRUMASK_TOOLTIP"));
         blurFrame->set_tooltip_text(M("TP_LOCALLAB_BLURMASK_TOOLTIP"));
-    } else {
+        maskHCurveEditorG->set_tooltip_text(M("TP_LOCALLAB_HHMASK_TOOLTIP"));
+        mask2CurveEditorGwav->set_tooltip_text(M("TP_LOCALLAB_WAVMASK_TOOLTIP"));
+        mask2CurveEditorG->set_tooltip_text(M("TP_LOCALLAB_CONTRASTCURVMASK_TOOLTIP"));
+        special->set_tooltip_text(M("TP_LOCALLAB_SPECIAL_TOOLTIP"));
+        } else {
         exp->set_tooltip_text("");
         lightness->set_tooltip_text("");
         structcol->set_tooltip_text("");
         sensi->set_tooltip_text("");
+        angcol->set_tooltip_text(M(""));
         strcol->set_tooltip_text("");
         qualitycurveMethod->set_tooltip_text("");
         mercol->set_tooltip_text("");
@@ -921,6 +926,10 @@ void LocallabColor::updateAdviceTooltips(const bool showTooltips)
         blendmaskcol->set_tooltip_text(M(""));
         struFrame->set_tooltip_text(M(""));
         blurFrame->set_tooltip_text(M(""));
+        maskHCurveEditorG->set_tooltip_text(M(""));
+        mask2CurveEditorGwav->set_tooltip_text(M(""));
+        mask2CurveEditorG->set_tooltip_text(M(""));
+        special->set_tooltip_text(M(""));
     }
 }
 
@@ -1112,6 +1121,9 @@ void LocallabColor::read(const rtengine::procparams::ProcParams* pp, const Param
         toolcol->set_active(spot.toolcol);
         fftColorMask->set_active(spot.fftColorMask);
         contcol->setValue(spot.contcol);
+        // Update GUI according to fftColorMash button state
+        // Note: Contrary to the others, shall be called before setting 'blurcol' value
+        updateColorGUI3();
         blurcol->setValue(spot.blurcol);
         blendmaskcol->setValue(spot.blendmaskcol);
         radmaskcol->setValue(spot.radmaskcol);
@@ -1137,9 +1149,6 @@ void LocallabColor::read(const rtengine::procparams::ProcParams* pp, const Param
 
     // Update GUI according to merMethod combobox state
     updateColorGUI2();
-
-    // Update GUI according to fftColorMash button state
-    updateColorGUI3();
 
     // Note: No need to manage pedited as batch mode is deactivated for Locallab
 }
@@ -1671,7 +1680,7 @@ void LocallabColor::convertParamToNormal()
 
     // Set hidden GUI widgets in Normal mode to default spot values
     blurcolde->setValue((double)defSpot.blurcolde);
-    softradiuscol->setValue(defSpot.softradiuscol);
+  //  softradiuscol->setValue(defSpot.softradiuscol);
     strcolab->setValue(defSpot.strcolab);
     strcolh->setValue(defSpot.strcolh);
     clshape->setCurve(defSpot.clcurve);
@@ -1783,7 +1792,7 @@ void LocallabColor::updateGUIToMode(const modeType new_type)
     if (new_type == Normal) {
         // Advanced widgets are hidden in Normal mode
         blurcolde->hide();
-        softradiuscol->hide();
+        softradiuscol->show();
         strcolab->hide();
         strcolh->hide();
         clCurveEditorG->hide();
@@ -1883,7 +1892,7 @@ void LocallabColor::inversChanged()
 {
     updateColorGUI1(); // Update GUI according to invers button state
 
-    // This event is called to transmit potentially resetted mask state
+    // This event is called to transmit potentially reset mask state
     if (listener) {
         listener->panelChanged(EvlocallabshowmaskMethod, "");
     }
@@ -2166,7 +2175,7 @@ LocallabExposure::LocallabExposure():
     expMethod(Gtk::manage(new MyComboBoxText())),
     pdeFrame(Gtk::manage(new Gtk::Frame(M("TP_LOCALLAB_PDEFRA")))),
     laplacexp(Gtk::manage(new Adjuster(M("TP_LOCALLAB_LAPLACEXP"), 0.0, 100.0, 0.1, 0.))),
-    linear(Gtk::manage(new Adjuster(M("TP_LOCALLAB_LINEAR"), 0., 1., 0.01, 0.3))),
+    linear(Gtk::manage(new Adjuster(M("TP_LOCALLAB_LINEAR"), 0., 1., 0.01, 0.05))),
     balanexp(Gtk::manage(new Adjuster(M("TP_LOCALLAB_BALANEXP"), 0.5, 1.5, 0.01, 1.0))),
     gamm(Gtk::manage(new Adjuster(M("TP_LOCALLAB_GAMM"), 0.2, 1.3, 0.01, 0.4))),
     exnoiseMethod(Gtk::manage(new MyComboBoxText())),
@@ -2185,13 +2194,13 @@ LocallabExposure::LocallabExposure():
     hlcomprthresh(Gtk::manage(new Adjuster(M("TP_EXPOSURE_COMPRHIGHLIGHTSTHRESHOLD"), 0, 100, 1, 0))),
     shadex(Gtk::manage(new Adjuster(M("TP_LOCALLAB_SHADEX"), 0, 100, 1, 0))),
     shcompr(Gtk::manage(new Adjuster(M("TP_LOCALLAB_SHADEXCOMP"), 0, 100, 1, 50))),
-    expchroma(Gtk::manage(new Adjuster(M("TP_LOCALLAB_EXPCHROMA"), -50, 100, 1, 30))),
+    expchroma(Gtk::manage(new Adjuster(M("TP_LOCALLAB_EXPCHROMA"), -50, 100, 1, 5))),
     curveEditorG(new CurveEditorGroup(options.lastlocalCurvesDir, M("TP_LOCALLAB_CURVEEDITOR_TONES_LABEL"))),
     shapeexpos(static_cast<DiagonalCurveEditor*>(curveEditorG->addCurve(CT_Diagonal, ""))),
     expgradexp(Gtk::manage(new MyExpander(false, M("TP_LOCALLAB_EXPGRAD")))),
     strexp(Gtk::manage(new Adjuster(M("TP_LOCALLAB_GRADSTR"), -4., 4., 0.05, 0.))),
     angexp(Gtk::manage(new Adjuster(M("TP_LOCALLAB_GRADANG"), -180, 180, 0.1, 0.))),
-    softradiusexp(Gtk::manage(new Adjuster(M("TP_LOCALLAB_SOFTRADIUSCOL"), -10.0, 1000.0, 0.5, 0.))),
+    softradiusexp(Gtk::manage(new Adjuster(M("TP_LOCALLAB_SOFTRADIUSCOL"), 0.0, 1000.0, 0.5, 0.))),
     inversex(Gtk::manage(new Gtk::CheckButton(M("TP_LOCALLAB_INVERS")))),
     expmaskexp(Gtk::manage(new MyExpander(false, M("TP_LOCALLAB_SHOWE")))),
     showmaskexpMethod(Gtk::manage(new MyComboBoxText())),
@@ -2285,7 +2294,7 @@ LocallabExposure::LocallabExposure():
     angexp->setAdjusterListener(this);
     angexp->set_tooltip_text(M("TP_LOCALLAB_GRADANG_TOOLTIP"));
 
-    softradiusexp->setLogScale(10, -10);
+    softradiusexp->setLogScale(10, 0);
     softradiusexp->setAdjusterListener(this);
 
     inversexConn  = inversex->signal_toggled().connect(sigc::mem_fun(*this, &LocallabExposure::inversexChanged));
@@ -2478,6 +2487,8 @@ void LocallabExposure::updateAdviceTooltips(const bool showTooltips)
         strmaskexp->set_tooltip_text(M("TP_LOCALLAB_GRADGEN_TOOLTIP"));
         Lmaskexpshape->setTooltip(M("TP_LOCALLAB_LMASK_LL_TOOLTIP"));
         blendmaskexp->set_tooltip_text(M("TP_LOCALLAB_BLENDMASK_TOOLTIP"));
+        mask2expCurveEditorG->set_tooltip_text(M("TP_LOCALLAB_CONTRASTCURVMASK_TOOLTIP"));
+        expchroma->set_tooltip_text(M("TP_LOCALLAB_EXPCHROMA_TOOLTIP"));
     } else {
         exp->set_tooltip_text("");
         expMethod->set_tooltip_text("");
@@ -2501,6 +2512,8 @@ void LocallabExposure::updateAdviceTooltips(const bool showTooltips)
         strmaskexp->set_tooltip_text("");
         Lmaskexpshape->setTooltip("");
         blendmaskexp->set_tooltip_text(M(""));
+        mask2expCurveEditorG->set_tooltip_text(M(""));
+        expchroma->set_tooltip_text(M(""));
     }
 }
 
@@ -3018,6 +3031,10 @@ void LocallabExposure::convertParamToNormal()
     slomaskexp->setValue(defSpot.slomaskexp);
     strmaskexp->setValue(defSpot.strmaskexp);
     angmaskexp->setValue(defSpot.angmaskexp);
+ //   laplacexp->setValue(defSpot.laplacexp);
+  //  linear->setValue(defSpot.linear);
+  //  balanexp->setValue(defSpot.balanexp);
+  //  gamm->setValue(defSpot.gamm);
 
     // Enable all listeners
     enableListener();
@@ -3032,6 +3049,7 @@ void LocallabExposure::updateGUIToMode(const modeType new_type)
         slomaskexp->hide();
         gradFramemask->hide();
         blurexpde->hide();
+     //   pdeFrame->hide();
     } else {
         // Advanced widgets are shown in Expert mode
         lapmaskexp->show();
@@ -3039,6 +3057,7 @@ void LocallabExposure::updateGUIToMode(const modeType new_type)
         slomaskexp->show();
         gradFramemask->show();
         blurexpde->show();
+      //  pdeFrame->show();
     }
 }
 
@@ -3086,7 +3105,7 @@ void LocallabExposure::inversexChanged()
     // Update exposure GUI according to inversex button state
     updateExposureGUI3();
 
-    // This event is called to transmit potentially resetted mask state
+    // This event is called to transmit potentially reset mask state
     if (listener) {
         listener->panelChanged(EvlocallabshowmaskMethod, "");
     }
@@ -3268,6 +3287,7 @@ LocallabShadow::LocallabShadow():
     sh_radius(Gtk::manage(new Adjuster(M("TP_SHADOWSHLIGHTS_RADIUS"), 0, 100, 1, 40))),
     sensihs(Gtk::manage(new Adjuster(M("TP_LOCALLAB_SENSI"), 0, 100, 1, 15))),
     blurSHde(Gtk::manage(new Adjuster(M("TP_LOCALLAB_BLURDE"), 2, 100, 1, 5))),
+    gamFrame(Gtk::manage(new Gtk::Frame(M("TP_LOCALLAB_GAMFRA")))),
     gamSH(Gtk::manage(new Adjuster(M("TP_LOCALLAB_GAMSH"), 0.25, 15.0, 0.01, 2.4))),
     sloSH(Gtk::manage(new Adjuster(M("TP_LOCALLAB_SLOSH"), 0.0, 150.0, 0.01, 12.92))),
     expgradsh(Gtk::manage(new MyExpander(false, M("TP_LOCALLAB_EXPGRAD")))),
@@ -3414,7 +3434,7 @@ LocallabShadow::LocallabShadow():
     pack_start(*sh_radius);
 //    pack_start(*sensihs);
     pack_start(*blurSHde);
-    Gtk::Frame* const gamFrame = Gtk::manage(new Gtk::Frame(M("TP_LOCALLAB_GAMFRA")));
+//    Gtk::Frame* const gamFrame = Gtk::manage(new Gtk::Frame(M("TP_LOCALLAB_GAMFRA")));
     gamFrame->set_label_align(0.025, 0.5);
     ToolParamBlock* const gammBox = Gtk::manage(new ToolParamBlock());
     gammBox->pack_start(*gamSH);
@@ -3495,7 +3515,7 @@ void LocallabShadow::updateAdviceTooltips(const bool showTooltips)
         gamSH->set_tooltip_text(M("TP_LOCALLAB_SHTRC_TOOLTIP"));
         sloSH->set_tooltip_text(M("TP_LOCALLAB_SHTRC_TOOLTIP"));
         blendmaskSH->set_tooltip_text(M("TP_LOCALLAB_BLENDMASK_TOOLTIP"));
-        
+        mask2SHCurveEditorG->set_tooltip_text(M("TP_LOCALLAB_CONTRASTCURVMASK_TOOLTIP"));
     } else {
         exp->set_tooltip_text("");
         strSH->set_tooltip_text("");
@@ -3512,6 +3532,7 @@ void LocallabShadow::updateAdviceTooltips(const bool showTooltips)
         gamSH->set_tooltip_text(M(""));
         sloSH->set_tooltip_text(M(""));
         blendmaskSH->set_tooltip_text(M(""));
+        mask2SHCurveEditorG->set_tooltip_text(M(""));
     }
 }
 
@@ -3981,7 +4002,7 @@ void LocallabShadow::inversshChanged()
     // Update shadow highlight GUI according to inverssh button state
     updateShadowGUI1();
 
-    // This event is called to transmit potentially resetted mask state
+    // This event is called to transmit potentially reset mask state
     if (listener) {
         listener->panelChanged(EvlocallabshowmaskMethod, "");
     }
@@ -4077,7 +4098,7 @@ void LocallabShadow::updateShadowGUI2()
         for (int i = 0; i < 5; i++) {
             multipliersh[i]->hide();
         }
-
+        gamFrame->hide();
         detailSH->hide();
         highlights->show();
         h_tonalwidth->show();
@@ -4088,6 +4109,7 @@ void LocallabShadow::updateShadowGUI2()
         for (int i = 0; i < 5; i++) {
             multipliersh[i]->show();
         }
+        gamFrame->show();
 
         detailSH->show();
         highlights->hide();
@@ -4306,7 +4328,8 @@ void LocallabVibrance::updateAdviceTooltips(const bool showTooltips)
         HHmaskvibshape->setTooltip(M("TP_LOCALLAB_CURVEEDITOR_CC_TOOLTIP"));
         Lmaskvibshape->setTooltip(M("TP_LOCALLAB_LMASK_LL_TOOLTIP"));
         blendmaskvib->set_tooltip_text(M("TP_LOCALLAB_BLENDMASK_TOOLTIP"));
-    } else {
+        mask2vibCurveEditorG->set_tooltip_text(M("TP_LOCALLAB_CONTRASTCURVMASK_TOOLTIP"));
+        } else {
         warm->set_tooltip_text("");
         strvib->set_tooltip_text("");
         expmaskvib->set_tooltip_text("");
@@ -4315,6 +4338,7 @@ void LocallabVibrance::updateAdviceTooltips(const bool showTooltips)
         HHmaskvibshape->setTooltip("");
         Lmaskvibshape->setTooltip("");
         blendmaskvib->set_tooltip_text(M(""));
+        mask2vibCurveEditorG->set_tooltip_text(M(""));
     }
 }
 
@@ -5112,7 +5136,7 @@ void LocallabSoft::softMethodChanged()
     // Update soft light GUI according to softMethod combobox
     updateSoftGUI();
 
-    // This event is called to transmit potentially resetted mask state
+    // This event is called to transmit potentially reset mask state
     if (listener) {
         listener->panelChanged(EvlocallabshowmaskMethod, "");
     }
@@ -5189,11 +5213,12 @@ LocallabBlur::LocallabBlur():
     noisechroc(Gtk::manage(new Adjuster(M("TP_LOCALLAB_NOISECHROCOARSE"), MINCHRO, MAXCHROCC, 0.01, 0.))),
     noisechrodetail(Gtk::manage(new Adjuster(M("TP_LOCALLAB_NOISECHRODETAIL"), 0., 100., 0.01, 0.))),
     detailthr(Gtk::manage(new Adjuster(M("TP_LOCALLAB_DETAILTHR"), 0, 100, 1, 0))),
-    adjblur(Gtk::manage(new Adjuster(M("TP_LOCALLAB_ADJ"), -100., 100., 1., 0., Gtk::manage(new RTImage("circle-blue-small.png")), Gtk::manage(new RTImage("circle-red-small.png"))))),
+    adjblur(Gtk::manage(new Adjuster(M("TP_LOCALLAB_ADJ"), -100., 100., 1., 0., Gtk::manage(new RTImage("circle-blue-yellow-small.png")), Gtk::manage(new RTImage("circle-red-green-small.png"))))),
     bilateral(Gtk::manage(new Adjuster(M("TP_LOCALLAB_BILATERAL"), 0, 100, 1, 0))),
     sensiden(Gtk::manage(new Adjuster(M("TP_LOCALLAB_SENSIDEN"), 0, 100, 1, 60))),
     expmaskbl(Gtk::manage(new MyExpander(false, M("TP_LOCALLAB_SHOWPLUS")))),
     showmaskblMethod(Gtk::manage(new MyComboBoxText())),
+    showmaskblMethodtyp(Gtk::manage(new MyComboBoxText())),
     enablMask(Gtk::manage(new Gtk::CheckButton(M("TP_LOCALLAB_ENABLE_MASK")))),
     maskblCurveEditorG(new CurveEditorGroup(options.lastlocalCurvesDir, M("TP_LOCALLAB_MASK"))),
     CCmaskblshape(static_cast<FlatCurveEditor*>(maskblCurveEditorG->addCurve(CT_Flat, "C(C)", nullptr, false, false))),
@@ -5208,6 +5233,7 @@ LocallabBlur::LocallabBlur():
     gammaskbl(Gtk::manage(new Adjuster(M("TP_LOCALLAB_GAMMASKCOL"), 0.05, 5.0, 0.01, 1.))),
     slomaskbl(Gtk::manage(new Adjuster(M("TP_LOCALLAB_SLOMASKCOL"), 0.0, 15.0, 0.1, 0.))),
     shadmaskbl(Gtk::manage(new Adjuster(M("TP_LOCALLAB_HIGHMASKCOL"), 0, 100, 1, 0))),
+    shadmaskblsha(Gtk::manage(new Adjuster(M("TP_LOCALLAB_SHAMASKCOL"), 0, 100, 1, 0))),
     mask2blCurveEditorG(new CurveEditorGroup(options.lastlocalCurvesDir, M("TP_LOCALLAB_MASK"))),
     Lmaskblshape(static_cast<DiagonalCurveEditor*>(mask2blCurveEditorG->addCurve(CT_Diagonal, "L(L)"))),
     mask2blCurveEditorGwav(new CurveEditorGroup(options.lastlocalCurvesDir, M("TP_LOCALLAB_WAVMASK"))),
@@ -5313,10 +5339,16 @@ LocallabBlur::LocallabBlur():
     showmaskblMethod->append(M("TP_LOCALLAB_SHOWMODIF"));
     showmaskblMethod->append(M("TP_LOCALLAB_SHOWMODIFMASK"));
     showmaskblMethod->append(M("TP_LOCALLAB_SHOWMASK"));
-    showmaskblMethod->append(M("TP_LOCALLAB_SHOWREF"));
+//    showmaskblMethod->append(M("TP_LOCALLAB_SHOWREF"));
     showmaskblMethod->set_active(0);
     showmaskblMethod->set_tooltip_markup(M("TP_LOCALLAB_SHOWMASKCOL_TOOLTIP"));
     showmaskblMethodConn = showmaskblMethod->signal_changed().connect(sigc::mem_fun(*this, &LocallabBlur::showmaskblMethodChanged));
+
+    showmaskblMethodtyp->append(M("TP_LOCALLAB_SHOWMASKTYP1"));
+    showmaskblMethodtyp->append(M("TP_LOCALLAB_SHOWMASKTYP2"));
+    showmaskblMethodtyp->append(M("TP_LOCALLAB_SHOWMASKTYP3"));
+    showmaskblMethodtyp->set_active(0);
+    showmaskblMethodtypConn = showmaskblMethodtyp->signal_changed().connect(sigc::mem_fun(*this, &LocallabBlur::showmaskblMethodtypChanged));
 
     enablMaskConn = enablMask->signal_toggled().connect(sigc::mem_fun(*this, &LocallabBlur::enablMaskChanged));
 
@@ -5354,6 +5386,8 @@ LocallabBlur::LocallabBlur():
     slomaskbl->setAdjusterListener(this);
 
     shadmaskbl->setAdjusterListener(this);
+
+    shadmaskblsha->setAdjusterListener(this);
 
     mask2blCurveEditorG->setCurveListener(this);
 
@@ -5418,6 +5452,7 @@ LocallabBlur::LocallabBlur():
     pack_start(*expdenoise);
     ToolParamBlock* const maskblBox = Gtk::manage(new ToolParamBlock());
     maskblBox->pack_start(*showmaskblMethod, Gtk::PACK_SHRINK, 4);
+    maskblBox->pack_start(*showmaskblMethodtyp, Gtk::PACK_SHRINK, 4);
     maskblBox->pack_start(*enablMask, Gtk::PACK_SHRINK, 0);
     maskblBox->pack_start(*maskblCurveEditorG, Gtk::PACK_SHRINK, 4); // Padding is mandatory to correct behavior of curve editor
     maskblBox->pack_start(*strumaskbl, Gtk::PACK_SHRINK, 0);
@@ -5433,6 +5468,7 @@ LocallabBlur::LocallabBlur():
     toolblBox->pack_start(*chromaskbl, Gtk::PACK_SHRINK, 0);
     toolblBox->pack_start(*gammaskbl, Gtk::PACK_SHRINK, 0);
     toolblBox->pack_start(*slomaskbl, Gtk::PACK_SHRINK, 0);
+    toolblBox->pack_start(*shadmaskblsha, Gtk::PACK_SHRINK, 0);
     toolblBox->pack_start(*shadmaskbl, Gtk::PACK_SHRINK, 0);
     toolblBox->pack_start(*mask2blCurveEditorG, Gtk::PACK_SHRINK, 4); // Padding is mandatory to correct behavior of curve editor
     toolblBox->pack_start(*mask2blCurveEditorGwav, Gtk::PACK_SHRINK, 4); // Padding is mandatory to correct behavior of curve editor
@@ -5440,7 +5476,7 @@ LocallabBlur::LocallabBlur():
     toolblFrame->add(*toolblBox);
     maskblBox->pack_start(*toolblFrame);
     expmaskbl->add(*maskblBox, false);
-//    pack_start(*expmaskbl);
+    pack_start(*expmaskbl);
 }
 
 LocallabBlur::~LocallabBlur()
@@ -5487,6 +5523,7 @@ void LocallabBlur::updateAdviceTooltips(const bool showTooltips)
         Lmaskblshape->setTooltip(M("TP_LOCALLAB_LMASK_LL_TOOLTIP"));
         LLmaskblshapewav->setTooltip(M("TP_LOCALLAB_LMASK_LEVEL_TOOLTIP"));
         blendmaskbl->set_tooltip_text(M("TP_LOCALLAB_BLENDMASK_TOOLTIP"));
+        showmaskblMethodtyp->set_tooltip_markup(M("TP_LOCALLAB_SHOWMASKTYP_TOOLTIP"));
     } else {
         expblnoise->set_tooltip_text("");
         radius->set_tooltip_text("");
@@ -5504,6 +5541,7 @@ void LocallabBlur::updateAdviceTooltips(const bool showTooltips)
         Lmaskblshape->setTooltip("");
         LLmaskblshapewav->setTooltip("");
         blendmaskbl->set_tooltip_text(M(""));
+        showmaskblMethodtyp->set_tooltip_markup(M(""));
     }
 }
 
@@ -5525,6 +5563,7 @@ void LocallabBlur::disableListener()
     chroMethodConn.block(true);
     activlumConn.block(true);
     showmaskblMethodConn.block(true);
+    showmaskblMethodtypConn.block(true);
     enablMaskConn.block(true);
     toolblConn.block(true);
 }
@@ -5540,6 +5579,7 @@ void LocallabBlur::enableListener()
     chroMethodConn.block(false);
     activlumConn.block(false);
     showmaskblMethodConn.block(false);
+    showmaskblMethodtypConn.block(false);
     enablMaskConn.block(false);
     toolblConn.block(false);
 }
@@ -5608,6 +5648,15 @@ void LocallabBlur::read(const rtengine::procparams::ProcParams* pp, const Params
             chroMethod->set_active(2);
         }
 
+
+        if (spot.showmaskblMethodtyp == "blur") {
+           showmaskblMethodtyp ->set_active(0);
+        } else if (spot.showmaskblMethodtyp == "nois") {
+            showmaskblMethodtyp->set_active(1);
+        } else if (spot.showmaskblMethodtyp == "all") {
+            showmaskblMethodtyp->set_active(2);
+        }
+
         activlum->set_active(spot.activlum);
         wavshapeden->setCurve(spot.locwavcurveden);
         noiselumf0->setValue(spot.noiselumf0);
@@ -5636,6 +5685,7 @@ void LocallabBlur::read(const rtengine::procparams::ProcParams* pp, const Params
         gammaskbl->setValue(spot.gammaskbl);
         slomaskbl->setValue(spot.slomaskbl);
         shadmaskbl->setValue((double)spot.shadmaskbl);
+        shadmaskblsha->setValue((double)spot.shadmaskblsha);
         Lmaskblshape->setCurve(spot.Lmaskblcurve);
         LLmaskblshapewav->setCurve(spot.LLmaskblcurvewav);
         csThresholdblur->setValue<int>(spot.csthresholdblur);
@@ -5711,6 +5761,15 @@ void LocallabBlur::write(rtengine::procparams::ProcParams* pp, ParamsEdited* ped
             spot.chroMethod = "all";
         }
 
+
+        if (showmaskblMethodtyp->get_active_row_number() == 0) {
+            spot.showmaskblMethodtyp = "blur";
+        } else if (showmaskblMethodtyp->get_active_row_number() == 1) {
+            spot.showmaskblMethodtyp = "nois";
+        } else if (showmaskblMethodtyp->get_active_row_number() == 2) {
+            spot.showmaskblMethodtyp = "all";
+        }
+
         spot.activlum = activlum->get_active();
         spot.locwavcurveden = wavshapeden->getCurve();
         spot.noiselumf0 = noiselumf0->getValue();
@@ -5739,6 +5798,7 @@ void LocallabBlur::write(rtengine::procparams::ProcParams* pp, ParamsEdited* ped
         spot.gammaskbl = gammaskbl->getValue();
         spot.slomaskbl = slomaskbl->getValue();
         spot.shadmaskbl = shadmaskbl->getIntValue();
+        spot.shadmaskblsha = shadmaskblsha->getIntValue();
         spot.Lmaskblcurve = Lmaskblshape->getCurve();
         spot.LLmaskblcurvewav = LLmaskblshapewav->getCurve();
         spot.csthresholdblur = csThresholdblur->getValue<int>();
@@ -5786,6 +5846,7 @@ void LocallabBlur::setDefaults(const rtengine::procparams::ProcParams* defParams
         gammaskbl->setDefault(defSpot.gammaskbl);
         slomaskbl->setDefault(defSpot.slomaskbl);
         shadmaskbl->setDefault(defSpot.shadmaskbl);
+        shadmaskblsha->setDefault(defSpot.shadmaskblsha);
         csThresholdblur->setDefault<int>(defSpot.csthresholdblur);
     }
 
@@ -6011,6 +6072,14 @@ void LocallabBlur::adjusterChanged(Adjuster* a, double newval)
                                        shadmaskbl->getTextValue() + " (" + escapeHtmlChars(spotName) + ")");
             }
         }
+
+        if (a == shadmaskblsha) {
+            if (listener) {
+                listener->panelChanged(Evlocallabshadmaskblsha,
+                                       shadmaskblsha->getTextValue() + " (" + escapeHtmlChars(spotName) + ")");
+            }
+        }
+        
     }
 }
 
@@ -6098,9 +6167,10 @@ void LocallabBlur::convertParamToNormal()
     strumaskbl->setValue(defSpot.strumaskbl);
     toolbl->set_active(defSpot.toolbl);
     lapmaskbl->setValue(defSpot.lapmaskbl);
-    gammaskbl->setValue(defSpot.gammaskbl);
-    slomaskbl->setValue(defSpot.slomaskbl);
+//    gammaskbl->setValue(defSpot.gammaskbl);
+//    slomaskbl->setValue(defSpot.slomaskbl);
     shadmaskbl->setValue((double)defSpot.shadmaskbl);
+    shadmaskblsha->setValue((double)defSpot.shadmaskblsha);
     LLmaskblshapewav->setCurve(defSpot.LLmaskblcurvewav);
     csThresholdblur->setValue<int>(defSpot.csthresholdblur);
 
@@ -6116,9 +6186,10 @@ void LocallabBlur::updateGUIToMode(const modeType new_type)
         strumaskbl->hide();
         toolbl->hide();
         lapmaskbl->hide();
-        gammaskbl->hide();
-        slomaskbl->hide();
+        gammaskbl->show();
+        slomaskbl->show();
         shadmaskbl->hide();
+        shadmaskblsha->hide();
         mask2blCurveEditorGwav->hide();
         csThresholdblur->hide();
     } else {
@@ -6133,6 +6204,7 @@ void LocallabBlur::updateGUIToMode(const modeType new_type)
         gammaskbl->show();
         slomaskbl->show();
         shadmaskbl->show();
+        shadmaskblsha->show();
         mask2blCurveEditorGwav->show();
         csThresholdblur->show();
     }
@@ -6236,6 +6308,19 @@ void LocallabBlur::showmaskblMethodChanged()
 
     if (listener) {
         listener->panelChanged(EvlocallabshowmaskMethod, "");
+    }
+}
+
+void LocallabBlur::showmaskblMethodtypChanged()
+{
+    // If mask preview is activated, deactivate all other tool mask preview
+    if (locToolListener) {
+        locToolListener->resetOtherMaskView(this);
+    }
+
+    if (listener) {
+        listener->panelChanged(EvlocallabshowmasktypMethod,
+                               showmaskblMethodtyp->get_active_text() + " (" + escapeHtmlChars(spotName) + ")");
     }
 }
 

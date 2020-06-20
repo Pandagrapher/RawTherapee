@@ -929,8 +929,21 @@ struct LensProfParams {
   * Parameters of the perspective correction
   */
 struct PerspectiveParams {
+    Glib::ustring method;
     double  horizontal;
     double  vertical;
+    double  camera_crop_factor;
+    double  camera_focal_length;
+    double  camera_pitch;
+    double  camera_roll;
+    double  camera_shift_horiz;
+    double  camera_shift_vert;
+    double  camera_yaw;
+    double  projection_pitch;
+    double  projection_rotate;
+    double  projection_shift_horiz;
+    double  projection_shift_vert;
+    double  projection_yaw;
 
     PerspectiveParams();
 
@@ -1202,6 +1215,7 @@ struct LocallabParams {
         int sensiden;
         int detailthr;
         std::vector<double> locwavcurveden;
+        Glib::ustring showmaskblMethodtyp;
         std::vector<double> CCmaskblcurve;
         std::vector<double> LLmaskblcurve;
         std::vector<double> HHmaskblcurve;
@@ -1215,6 +1229,7 @@ struct LocallabParams {
         double slomaskbl;
         double lapmaskbl;
         int shadmaskbl;
+        int shadmaskblsha;
         double strumaskbl;
         std::vector<double> Lmaskblcurve;
         std::vector<double> LLmaskblcurvewav;

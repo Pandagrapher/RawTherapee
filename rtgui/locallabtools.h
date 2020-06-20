@@ -419,6 +419,7 @@ private:
     Adjuster* const sh_radius;
     Adjuster* const sensihs;
     Adjuster* const blurSHde;
+    Gtk::Frame* const gamFrame;
     Adjuster* const gamSH;
     Adjuster* const sloSH;
     MyExpander* const expgradsh;
@@ -653,6 +654,7 @@ private:
     Adjuster* const sensiden;
     MyExpander* const expmaskbl;
     MyComboBoxText* const showmaskblMethod;
+    MyComboBoxText* const showmaskblMethodtyp;
     Gtk::CheckButton* const enablMask;
     CurveEditorGroup* const maskblCurveEditorG;
     FlatCurveEditor* const CCmaskblshape;
@@ -667,13 +669,14 @@ private:
     Adjuster* const gammaskbl;
     Adjuster* const slomaskbl;
     Adjuster* const shadmaskbl;
+    Adjuster* const shadmaskblsha;
     CurveEditorGroup* const mask2blCurveEditorG;
     DiagonalCurveEditor* const Lmaskblshape;
     CurveEditorGroup* const mask2blCurveEditorGwav;
     FlatCurveEditor* const LLmaskblshapewav;
     ThresholdAdjuster* const csThresholdblur;
 
-    sigc::connection blMethodConn, fftwblConn, medMethodConn, blurMethodConn, chroMethodConn, activlumConn, showmaskblMethodConn, enablMaskConn, toolblConn;
+    sigc::connection blMethodConn, fftwblConn, medMethodConn, blurMethodConn, chroMethodConn, activlumConn, showmaskblMethodConn, showmaskblMethodtypConn, enablMaskConn, toolblConn;
 
 public:
     LocallabBlur();
@@ -713,6 +716,7 @@ private:
     void chroMethodChanged();
     void activlumChanged();
     void showmaskblMethodChanged();
+    void showmaskblMethodtypChanged();
     void enablMaskChanged();
     void toolblChanged();
 
@@ -893,11 +897,11 @@ class LocallabSharp:
 {
 private:
     Adjuster* const sharcontrast;
-    Adjuster* const sharradius;
+    Adjuster* const sharblur;
     Adjuster* const sharamount;
     Adjuster* const shardamping;
     Adjuster* const shariter;
-    Adjuster* const sharblur;
+    Adjuster* const sharradius;
     Adjuster* const sensisha;
     Gtk::CheckButton* const inverssha;
     MyComboBoxText* const showmasksharMethod;
