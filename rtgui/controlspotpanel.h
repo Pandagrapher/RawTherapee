@@ -19,7 +19,6 @@
  */
 #pragma once
 
-#include "../rtengine/coord.h"
 #include "editcallbacks.h"
 #include "threadutils.h"
 #include "toolpanel.h"
@@ -34,7 +33,6 @@ class SpotTreeViewModel:
 public:
     // Spot TreeView column records
     Gtk::TreeModelColumn<bool> mouseOver; // To manage mouse over actions
-    Gtk::TreeModelColumn<bool> optionKey; // To manage 'option' key pressed/released state
     Gtk::TreeModelColumn<std::shared_ptr<BaseSpot>> spot; // Spot object
 
 private:
@@ -61,11 +59,15 @@ private:
 
     // SpotTreeView pixbufs (Note: 16x16px icons)
     Glib::RefPtr<Gdk::Pixbuf> pixEmpty;
-    Glib::RefPtr<Gdk::Pixbuf> pixAdd;
+    Glib::RefPtr<Gdk::Pixbuf> pixDelete;
     Glib::RefPtr<Gdk::Pixbuf> pixDuplicate;
 
+    // SpotTreeView columns
+    Gtk::TreeViewColumn* colDuplicate;
+    Gtk::TreeViewColumn* colName;
+    Gtk::TreeViewColumn* colDelete;
+
     // Internal variables
-    bool isOptionPressed;
     Glib::ustring oldName;
     bool nameEditing;
     sigc::connection treeViewConn;
@@ -74,27 +76,35 @@ public:
     SpotTreeView();
     ~SpotTreeView();
 
+    // Requested event functions
+    void requestedSpotCreation(BaseSpot::spotType type);
+
 private:
     // Event management functions:
     // - To manage TreeView appearance according to mouse cursor location
     bool on_motion_notify_event(GdkEventMotion* motion_event) override;
     bool on_leave_notify_event(GdkEventCrossing* crossing_event) override;
-    // - To manage TreeView appearance according to key
-    bool on_key_press_event(GdkEventKey* key_event) override;
-    bool on_key_release_event(GdkEventKey* key_event) override;
     // - To manage spot name column editable
     void on_spotname_editing_started(Gtk::CellEditable* editable, const Glib::ustring& path);
     void on_spotname_edited(const Glib::ustring& path, const Glib::ustring& new_text);
     void on_spotname_editing_canceled();
+    // - To manage user click actions on TreeView
+    void on_row_activated (const Gtk::TreeModel::Path& path, Gtk::TreeViewColumn* column) override;
+
 
 
     void rowChanged(); // To manage TreeView update when changing selected row
 
     bool spotManagementClicked(GdkEventButton* event);
 
+    // TreeView management functions
+    void addRow(BaseSpot::spotType type);
+    void deleteRow(const Gtk::TreeModel::iterator& iter);
+
     // Cell rendering functions
-    void renderSpotManagement(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter);
+    void renderSpotDuplicate(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter);
     void renderSpotName(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter);
+    void renderSpotDelete(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter);
 };
 
 class ControlPanelListener

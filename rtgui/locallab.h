@@ -96,6 +96,11 @@ class Locallab :
     public LocallabToolListListener
 {
 private:
+    // Test
+    // TODO
+    Gtk::Button* const buttonadd;
+    SpotTreeView* const newGUI;
+
     // Spot control panel widget
     ControlSpotPanel* const expsettings;
 
@@ -189,6 +194,8 @@ public:
     void updateShowtooltipVisibility(bool showtooltip);
 
 private:
+    void buttonaddClicked();
+
     // Locallab tools management functions
     void addTool(Gtk::Box* where, LocallabTool* tool);
 

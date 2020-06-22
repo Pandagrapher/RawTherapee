@@ -19,6 +19,8 @@
  */
 #include "locallabspot.h"
 
+#include "multilangmgr.h"
+
 /* ==== BaseSpot ==== */
 BaseSpot::BaseSpot():
     name(M("TP_LOCALLAB_SPOTNAME")),

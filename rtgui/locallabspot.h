@@ -19,7 +19,7 @@
  */
 #pragma once
 
-#include "multilangmgr.h"
+#include <glibmm.h>
 
 /* ==== BaseSpot ==== */
 class BaseSpot

@@ -143,6 +143,11 @@ void LocallabToolList::toolRowSelected()
 Locallab::Locallab():
     FoldableToolPanel(this, "locallab", M("TP_LOCALLAB_LABEL"), false, true),
 
+    // Test
+    // TODO
+    buttonadd(Gtk::manage(new Gtk::Button(M("TP_LOCALLAB_BUTTON_ADD")))),
+    newGUI(Gtk::manage(new SpotTreeView())),
+
     // Spot control panel widget
     expsettings(Gtk::manage(new ControlSpotPanel())),
 
@@ -172,7 +177,9 @@ Locallab::Locallab():
 
     // Test
     // TODO
-    SpotTreeView* const newGUI = Gtk::manage(new SpotTreeView());
+    panel->pack_start(*buttonadd);
+    buttonadd->signal_clicked().connect(
+            sigc::mem_fun(*this, &Locallab::buttonaddClicked));
     panel->pack_start(*newGUI);
 
     // Add spot control panel to panel widget
@@ -1118,6 +1125,11 @@ void Locallab::updateShowtooltipVisibility(bool showtooltip)
     for (auto tool : locallabTools) {
         tool->updateAdviceTooltips(showtooltip);
     }
+}
+
+void Locallab::buttonaddClicked()
+{
+    newGUI->requestedSpotCreation(BaseSpot::spotEllipse);
 }
 
 void Locallab::addTool(Gtk::Box* where, LocallabTool* tool)
