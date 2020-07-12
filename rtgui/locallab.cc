@@ -1063,17 +1063,20 @@ void Locallab::resetshowPressed()
 
 void Locallab::setEditProvider(EditDataProvider * provider)
 {
+    newGUI->setEditProvider(provider);
     expsettings->setEditProvider(provider);
 }
 
 void Locallab::subscribe()
 {
-    expsettings->subscribe();
+    newGUI->subscribe();
+    // expsettings->subscribe();
 }
 
 void Locallab::unsubscribe()
 {
-    expsettings->unsubscribe();
+    newGUI->unsubscribe();
+    // expsettings->unsubscribe();
 }
 
 void Locallab::enabledChanged()

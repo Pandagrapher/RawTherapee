@@ -47,7 +47,8 @@ private:
 
 /* ==== SpotTreeView ==== */
 class SpotTreeView:
-    public Gtk::TreeView
+    public Gtk::TreeView,
+    public EditSubscriber
 {
 public:
     // TBD
@@ -70,6 +71,7 @@ private:
     // Internal variables
     Glib::ustring oldName;
     bool nameEditing;
+    Geometry* selWidget;
     sigc::connection treeViewConn;
 
 public:
@@ -80,7 +82,7 @@ public:
     void requestedSpotCreation(BaseSpot::spotType type);
 
 private:
-    // Event management functions:
+    // TreeView event management functions:
     // - To manage TreeView appearance according to mouse cursor location
     bool on_motion_notify_event(GdkEventMotion* motion_event) override;
     bool on_leave_notify_event(GdkEventCrossing* crossing_event) override;
@@ -95,7 +97,6 @@ private:
 
     void rowChanged(); // To manage TreeView update when changing selected row
 
-    bool spotManagementClicked(GdkEventButton* event);
 
     // TreeView management functions
     void addRow(BaseSpot::spotType type);
@@ -105,6 +106,12 @@ private:
     void renderSpotDuplicate(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter);
     void renderSpotName(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter);
     void renderSpotDelete(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter);
+
+    // EditSubsriber event functions
+    // - To manage widgets drag&drop
+    bool button1Pressed(int modifierKey) override;
+    bool drag1(int modifierKey) override;
+    bool button1Released() override;
 };
 
 class ControlPanelListener

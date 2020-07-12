@@ -19,7 +19,8 @@
  */
 #pragma once
 
-#include <glibmm.h>
+#include "editwidgets.h"
+#include "editcallbacks.h"
 
 /* ==== BaseSpot ==== */
 class BaseSpot
@@ -31,6 +32,14 @@ public:
         spotRectangle = 1
     };
 
+    // Spot event type enumeration
+    enum spotEvent {
+        none = 0,
+        spotMoved = 1,
+        centerResized = 2,
+        shapeChanged = 3
+    };
+
 private:
     // BaseSpot parameters
     Glib::ustring name;
@@ -38,8 +47,17 @@ private:
     bool isexcluded;
     bool isvisible;
 
+    // Geometry lists
+    std::vector<Geometry*> visible;
+    std::vector<Geometry*> mouseOver;
+
+    // Center circle widgets
+    Circle* const centerVisible;
+    Circle* const centerMouseOver;
+
 public:
-    BaseSpot();
+    BaseSpot(EditDataProvider* const provider);
+    ~BaseSpot();
 
     // Getter/Setter functions
     Glib::ustring getSpotName()
@@ -74,6 +92,18 @@ public:
     {
         this->isvisible = visible;
     };
+    std::vector<Geometry*> getVisible()
+    {
+        return this->visible;
+    };
+    std::vector<Geometry*> getMouseOver()
+    {
+        return this->mouseOver;
+    };
+
+    // Spot widgets event functions
+    bool isSpotWidget(Geometry* const visibleWidget); // Return true if visibleWidget belongs to the spot
+    spotEvent dragWidget(EditDataProvider* const provider, Geometry* const visibleWidget, const int modifierKey); // Return true if visibleCenter has been dragged
 
     // TBD
 

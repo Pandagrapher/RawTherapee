@@ -40,6 +40,8 @@ SpotTreeViewModel::SpotTreeViewModel()
 
 /* ==== SpotTreeView ==== */
 SpotTreeView::SpotTreeView():
+    EditSubscriber(ET_OBJECTS),
+
     // SpotTreeView pixbufs
     pixEmpty(Glib::RefPtr<Gdk::Pixbuf>()),
     pixDelete(RTImage::createPixbufFromFile("cancel-small.png")),
@@ -47,7 +49,8 @@ SpotTreeView::SpotTreeView():
 
     // Internal variable
     oldName(""),
-    nameEditing(false)
+    nameEditing(false),
+    selWidget(nullptr)
 {
     // Set SpotTreeView general appearance
     set_grid_lines(Gtk::TREE_VIEW_GRID_LINES_VERTICAL);
@@ -233,8 +236,6 @@ void SpotTreeView::on_row_activated(const Gtk::TreeModel::Path& path, Gtk::TreeV
     }
 
     if (column == colDelete) {
-        printf("colDelete\n");
-
         // Delete selected row
         deleteRow(spotTreeModel->get_iter(path));
 
@@ -249,15 +250,6 @@ void SpotTreeView::rowChanged()
     printf("RowChanged\n");
 }
 
-
-bool SpotTreeView::spotManagementClicked(GdkEventButton* event)
-{
-    // TODO
-    printf("spotManagementClicked\n");
-
-    return true; // No need to propagate event further
-}
-
 void SpotTreeView::addRow(BaseSpot::spotType type)
 {
     // Disable spot selection event
@@ -266,9 +258,19 @@ void SpotTreeView::addRow(BaseSpot::spotType type)
     // Create and add new row
     // TODO Add new row according to its type
     auto row = *(spotTreeModel->append());
-    auto newSpot = new BaseSpot();
+    auto newSpot = std::shared_ptr<BaseSpot>(new BaseSpot(getEditProvider()));
     newSpot->setSpotName(M("TP_LOCALLAB_SPOTNAME"));
-    row[spots.spot] = std::shared_ptr<BaseSpot>(newSpot);
+    row[spots.spot] = newSpot;
+
+    // Append newly spot widgets to widgets list
+    const auto spotVisible = newSpot->getVisible();
+    EditSubscriber::visibleGeometry.insert(EditSubscriber::visibleGeometry.end(),
+        spotVisible.begin(),
+        spotVisible.end());
+    const auto spotMouseOver = newSpot->getMouseOver();
+    EditSubscriber::mouseOverGeometry.insert(EditSubscriber::mouseOverGeometry.end(),
+        spotMouseOver.begin(),
+        spotMouseOver.end());
 
     // Select newly created row
     get_selection()->select(row);
@@ -289,8 +291,60 @@ void SpotTreeView::deleteRow(const Gtk::TreeModel::iterator& iter)
         prevRow--;
     }
 
+    // Remove spot widgets
+    const auto delRow = *iter;
+    std::shared_ptr<BaseSpot> delSpot = delRow[spots.spot];
+
+    auto visibleFirst = EditSubscriber::visibleGeometry.end();
+    auto visibleEnd = EditSubscriber::visibleGeometry.end();
+    const auto spotVisible = delSpot->getVisible();
+
+    for (auto it = EditSubscriber::visibleGeometry.begin(); it != EditSubscriber::visibleGeometry.end(); it++) {
+        if (*it == spotVisible.front()) {
+            visibleFirst = it;
+        }
+
+        if (*it == spotVisible.back()) {
+            visibleEnd = it;
+            break;
+        }
+    }
+
+    if (visibleFirst != EditSubscriber::visibleGeometry.end()
+            && visibleEnd != EditSubscriber::visibleGeometry.end()) { // Spot widgets have been found
+        if (visibleFirst == visibleEnd) { // To manage case where there is only one element to erase
+            EditSubscriber::visibleGeometry.erase(visibleFirst);
+        } else {
+            EditSubscriber::visibleGeometry.erase(visibleFirst, visibleEnd);
+        }
+    }
+
+    auto mouseFirst = EditSubscriber::mouseOverGeometry.end();
+    auto mouseEnd = EditSubscriber::mouseOverGeometry.end();
+    const auto spotMouse = delSpot->getMouseOver();
+
+    for (auto it = EditSubscriber::mouseOverGeometry.begin(); it != EditSubscriber::mouseOverGeometry.end(); it++) {
+        if (*it == spotMouse.front()) {
+            mouseFirst = it;
+        }
+
+        if (*it == spotMouse.back()) {
+            mouseEnd = it;
+            break;
+        }
+    }
+
+    if (mouseFirst != EditSubscriber::mouseOverGeometry.end()
+            && mouseEnd != EditSubscriber::mouseOverGeometry.end()) { // Spot widgets have been found
+        if (mouseFirst == mouseEnd) { // To manage case where there is only one element to erase
+            EditSubscriber::mouseOverGeometry.erase(mouseFirst);
+        } else {
+            EditSubscriber::mouseOverGeometry.erase(mouseFirst, mouseEnd);
+        }
+    }
+
     // Remove row from TreeView
-    auto nextRow = spotTreeModel->erase(iter);
+    const auto nextRow = spotTreeModel->erase(iter);
 
     // Select row after deleted one
     if (spotTreeModel->children().size() > 0) { // There is remaining spots
@@ -344,6 +398,62 @@ void SpotTreeView::renderSpotDelete(Gtk::CellRenderer* cell, const Gtk::TreeMode
         // Show no action
         cp->property_pixbuf() = pixEmpty;
     }
+}
+
+bool SpotTreeView::button1Pressed(int modifierKey)
+{
+    EditDataProvider* const provider = getEditProvider();
+    const int objectID = provider->getObject();
+    const int rowCount = (int)spotTreeModel->children().size();
+
+    if (!provider || objectID == -1 || !rowCount) { // When there is no spot, objectID can unexpectedly be different from -1 and produced not desired behavior
+        return false; // No need to update preview
+    }
+
+    // Select associated TreeView row
+    if (objectID < (int)EditSubscriber::visibleGeometry.size()) {
+        selWidget = EditSubscriber::visibleGeometry.at(objectID);
+
+        for (auto &row : spotTreeModel->children()) {
+            std::shared_ptr<BaseSpot> spot = row[spots.spot];
+
+            if (spot->isSpotWidget(selWidget)) {
+                get_selection()->select(row);
+
+                break;
+            }
+        }
+    }
+
+    // Start drag&drop
+    EditSubscriber::action = EditSubscriber::Action::DRAGGING;
+
+    return false; // No need to update preview
+}
+
+bool SpotTreeView::drag1(int modifierKey)
+{
+    EditDataProvider* const provider = getEditProvider();
+
+    // Get selected spot
+    const auto row = *get_selection()->get_selected();
+    std::shared_ptr<BaseSpot> sp = row[spots.spot];
+
+    // Dragging spot widget
+    BaseSpot::spotEvent event = sp->dragWidget(provider, selWidget, modifierKey);
+
+    // Raise event
+    // TODO
+
+    return false; // No need to update preview
+}
+
+bool SpotTreeView::button1Released()
+{
+    // Stop drag&drop
+    EditSubscriber::action = EditSubscriber::Action::NONE;
+
+    return false; // No need to update preview
 }
 
 //-----------------------------------------------------------------------------
