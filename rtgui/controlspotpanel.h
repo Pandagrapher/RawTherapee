@@ -32,7 +32,8 @@ class SpotTreeViewModel:
 {
 public:
     // Spot TreeView column records
-    Gtk::TreeModelColumn<bool> mouseOver; // To manage mouse over actions
+    Gtk::TreeModelColumn<bool> mouseOver; // To manage mouse over actions over row
+    Gtk::TreeModelColumn<bool> spotMouseOver; // To manage mouse over actions over spot widget
     Gtk::TreeModelColumn<std::shared_ptr<BaseSpot>> spot; // Spot object
 
 private:
@@ -63,6 +64,10 @@ private:
     Glib::RefPtr<Gdk::Pixbuf> pixDelete;
     Glib::RefPtr<Gdk::Pixbuf> pixDuplicate;
 
+    // SpotTreeView colors
+    Gdk::RGBA colorNominal;
+    Gdk::RGBA colorMouseOver;
+
     // SpotTreeView columns
     Gtk::TreeViewColumn* colDuplicate;
     Gtk::TreeViewColumn* colName;
@@ -72,6 +77,7 @@ private:
     Glib::ustring oldName;
     bool nameEditing;
     Geometry* selWidget;
+    int lastMouseOverID;
     sigc::connection treeViewConn;
 
 public:
@@ -108,6 +114,9 @@ private:
     void renderSpotDelete(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter);
 
     // EditSubsriber event functions
+    // - To manage widgets mouse over
+    bool mouseOver(int modifierKey) override;
+    CursorShape getCursor(int objectID) const override;
     // - To manage widgets drag&drop
     bool button1Pressed(int modifierKey) override;
     bool drag1(int modifierKey) override;

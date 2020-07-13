@@ -35,6 +35,7 @@ SpotTreeViewModel::SpotTreeViewModel()
 {
     // Add TreeView columns to model
     add(mouseOver);
+    add(spotMouseOver);
     add(spot);
 }
 
@@ -47,15 +48,19 @@ SpotTreeView::SpotTreeView():
     pixDelete(RTImage::createPixbufFromFile("cancel-small.png")),
     pixDuplicate(RTImage::createPixbufFromFile("copy-small.png")),
 
+    // SpotTreeView colors
+    colorNominal("rgba(0,0,0,0)"),
+    colorMouseOver("rgba(150,100,0,1)"),
+
     // Internal variable
     oldName(""),
     nameEditing(false),
-    selWidget(nullptr)
+    selWidget(nullptr),
+    lastMouseOverID(-1)
 {
     // Set SpotTreeView general appearance
     set_grid_lines(Gtk::TREE_VIEW_GRID_LINES_VERTICAL);
     get_selection()->set_mode(Gtk::SELECTION_BROWSE); // Avoid spot unselection
-    set_size_request(-1, 150); // Set minimum height
     set_can_focus(false);
     set_activate_on_single_click(false);
 
@@ -371,6 +376,13 @@ void SpotTreeView::renderSpotDuplicate(Gtk::CellRenderer* cell, const Gtk::TreeM
         // Show no action
         cp->property_pixbuf() = pixEmpty;
     }
+
+    // Render spot duplicate background color
+    if (row[spots.spotMouseOver]) {
+        cp->property_cell_background_rgba() = colorMouseOver;
+    } else {
+        cp->property_cell_background_rgba() = colorNominal;
+    }
 }
 
 void SpotTreeView::renderSpotName(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter)
@@ -379,10 +391,14 @@ void SpotTreeView::renderSpotName(Gtk::CellRenderer* cell, const Gtk::TreeModel:
     Gtk::CellRendererText* const ct = static_cast<Gtk::CellRendererText*>(cell);
 
     // Render spot name text
-    BaseSpot* const sp = row.get_value(spots.spot).get();
+    std::shared_ptr<BaseSpot> sp = row[spots.spot];
+    ct->property_text() = sp->getSpotName();
 
-    if (sp) {
-        ct->property_text() = sp->getSpotName();
+    // Render spot name background color
+    if (row[spots.spotMouseOver]) {
+        ct->property_background_rgba() = colorMouseOver;
+    } else {
+        ct->property_background_rgba() = colorNominal;
     }
 }
 
@@ -398,6 +414,81 @@ void SpotTreeView::renderSpotDelete(Gtk::CellRenderer* cell, const Gtk::TreeMode
         // Show no action
         cp->property_pixbuf() = pixEmpty;
     }
+
+    // Render spot delete background color
+    if (row[spots.spotMouseOver]) {
+        cp->property_cell_background_rgba() = colorMouseOver;
+    } else {
+        cp->property_cell_background_rgba() = colorNominal;
+    }
+}
+
+bool SpotTreeView::mouseOver(int modifierKey)
+{
+    EditDataProvider* const provider = getEditProvider();
+    const int rowCount = (int)spotTreeModel->children().size();
+
+    if (!provider || !rowCount) { // When there is no spot, objectID can unexpectedly be different from -1 and produced not desired behavior
+        return false; // No need to update preview
+    }
+
+    const int objectID = provider->getObject();
+
+    if (objectID != lastMouseOverID) { // To reduce GUI updates when unnecessary
+        lastMouseOverID = objectID;
+
+        if (objectID == -1) {
+            // Reset TreeView row color
+            for (auto &row : spotTreeModel->children()) {
+                std::shared_ptr<BaseSpot> spot = row[spots.spot];
+                row[spots.spotMouseOver] = false;
+                spot->prelightWidget(false);
+            }
+
+            return false; // No need to update preview
+        }
+
+        // Update TreeView row color according to mouse over widget
+        if (objectID < (int)EditSubscriber::visibleGeometry.size()) {
+            Geometry* const mouseOverWidget = EditSubscriber::visibleGeometry.at(objectID);
+
+            for (auto &row : spotTreeModel->children()) {
+                std::shared_ptr<BaseSpot> spot = row[spots.spot];
+
+                if (spot->isSpotWidget(mouseOverWidget)) {
+                    row[spots.spotMouseOver] = true;
+                    spot->prelightWidget();
+                } else {
+                    row[spots.spotMouseOver] = false;
+                    spot->prelightWidget(false);
+                }
+            }
+
+            return false; // No need to update preview
+        }
+    }
+
+    return false; // No need to update preview
+}
+
+CursorShape SpotTreeView::getCursor(int objectID) const
+{
+    CursorShape cursor = CSHandOpen;
+    const int rowCount = (int)spotTreeModel->children().size();
+
+    if (objectID != -1 && rowCount) { // When there is no spot, objectID can unexpectedly be different from -1 and produced not desired behavior
+        if (objectID < (int)EditSubscriber::visibleGeometry.size()) {
+            Geometry* const cursorWidget = EditSubscriber::visibleGeometry.at(objectID);
+
+            // Update cursor according to mouse over spot widget
+            for (auto &row : spotTreeModel->children()) {
+                std::shared_ptr<BaseSpot> spot = row[spots.spot];
+                spot->getSpotCursor(cursorWidget, cursor);
+            }
+        }
+    }
+
+    return cursor;
 }
 
 bool SpotTreeView::button1Pressed(int modifierKey)
@@ -451,6 +542,7 @@ bool SpotTreeView::drag1(int modifierKey)
 bool SpotTreeView::button1Released()
 {
     // Stop drag&drop
+    selWidget = nullptr;
     EditSubscriber::action = EditSubscriber::Action::NONE;
 
     return false; // No need to update preview

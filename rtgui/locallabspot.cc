@@ -124,3 +124,20 @@ BaseSpot::spotEvent BaseSpot::dragWidget(EditDataProvider* const provider, Geome
     return event;
 }
 
+void BaseSpot::getSpotCursor(Geometry* const visibleWidget, CursorShape& cursor)
+{
+    if (visibleWidget == centerVisible) {
+        cursor = CSMove2D;
+    }
+}
+
+void BaseSpot::prelightWidget(const bool prelight)
+{
+    if (prelight) {
+        // Center visible widget is prelighted
+        centerVisible->state = Geometry::PRELIGHT;
+    } else {
+        // Center visible widget is unprelighted
+        centerVisible->state = Geometry::NORMAL;
+    }
+}

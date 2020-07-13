@@ -57,7 +57,7 @@ private:
 
 public:
     BaseSpot(EditDataProvider* const provider);
-    ~BaseSpot();
+    virtual ~BaseSpot();
 
     // Getter/Setter functions
     Glib::ustring getSpotName()
@@ -102,10 +102,12 @@ public:
     };
 
     // Spot widgets event functions
-    bool isSpotWidget(Geometry* const visibleWidget); // Return true if visibleWidget belongs to the spot
-    spotEvent dragWidget(EditDataProvider* const provider, Geometry* const visibleWidget, const int modifierKey); // Return true if visibleCenter has been dragged
+    virtual bool isSpotWidget(Geometry* const visibleWidget); // Return true if visibleWidget belongs to the spot
+    virtual spotEvent dragWidget(EditDataProvider* const provider, Geometry* const visibleWidget, const int modifierKey); // Return spotEvent according to dragged visibleWidget
+    virtual void getSpotCursor(Geometry* const visibleWidget, CursorShape& cursor); // Update cursor if visibleWidget belongs to the spot
 
-    // TBD
+    // Spot widgets appearance functions
+    virtual void prelightWidget(const bool prelight = true);
 
 private:
     // TBD

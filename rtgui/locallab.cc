@@ -180,7 +180,10 @@ Locallab::Locallab():
     panel->pack_start(*buttonadd);
     buttonadd->signal_clicked().connect(
             sigc::mem_fun(*this, &Locallab::buttonaddClicked));
-    panel->pack_start(*newGUI);
+    Gtk::ScrolledWindow* const newGUIScrolled = Gtk::manage(new Gtk::ScrolledWindow());
+    newGUIScrolled->set_min_content_height(150);
+    newGUIScrolled->add(*newGUI);
+    panel->pack_start(*newGUIScrolled);
 
     // Add spot control panel to panel widget
     expsettings->setControlPanelListener(this);
