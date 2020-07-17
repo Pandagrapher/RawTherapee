@@ -99,14 +99,10 @@ private:
     // - To manage user click actions on TreeView
     void on_row_activated (const Gtk::TreeModel::Path& path, Gtk::TreeViewColumn* column) override;
 
-
-
-    void rowChanged(); // To manage TreeView update when changing selected row
-
-
     // TreeView management functions
     void addRow(BaseSpot::spotType type);
     void deleteRow(const Gtk::TreeModel::iterator& iter);
+    void rowChanged();
 
     // Cell rendering functions
     void renderSpotDuplicate(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter);
@@ -121,6 +117,9 @@ private:
     bool button1Pressed(int modifierKey) override;
     bool drag1(int modifierKey) override;
     bool button1Released() override;
+
+    // Other functions
+    Glib::ustring getNewName(const Glib::ustring& oldName, Gtk::TreeRow* exceptRow = nullptr) const; // This function searches if name already exists, otherwise adds/increments number
 };
 
 class ControlPanelListener

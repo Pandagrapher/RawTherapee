@@ -85,6 +85,7 @@ SpotTreeView::SpotTreeView():
     // - 2nd column: Name
     auto const cell2 = Gtk::manage(new Gtk::CellRendererText());
     cell2->property_editable() = true; // Set cell editable by user
+    cell2->property_ellipsize() = Pango::ELLIPSIZE_END; // Set cell ellipsize mode
     cols_count = append_column(M("TP_LOCALLAB_COL_NAME"), *cell2);
     colName = get_column(cols_count - 1);
 
@@ -206,21 +207,18 @@ void SpotTreeView::on_spotname_editing_started(Gtk::CellEditable* editable, cons
 
     // Store actual spot name
     auto const row = *(spotTreeModel->get_iter(path));
-    BaseSpot* const sp = row.get_value(spots.spot).get();
-
-    if (sp) {
-        oldName = sp->getSpotName();
-    }
+    std::shared_ptr<BaseSpot> sp = row[spots.spot];
+    oldName = sp->getSpotName(); // TODO Is oldName necessary?
 }
 
 void SpotTreeView::on_spotname_edited(const Glib::ustring& path, const Glib::ustring& new_text)
 {
     // Store new spot name
-    auto const row = *(spotTreeModel->get_iter(path));
-    BaseSpot* const sp = row.get_value(spots.spot).get();
+    auto row = *(spotTreeModel->get_iter(path));
+    std::shared_ptr<BaseSpot> sp = row[spots.spot];
 
-    if (sp) {
-        sp->setSpotName(new_text);
+    if (new_text != "") {
+        sp->setSpotName(getNewName(new_text, &row));
     }
 
     // Indicate that editing has stopped
@@ -249,12 +247,6 @@ void SpotTreeView::on_row_activated(const Gtk::TreeModel::Path& path, Gtk::TreeV
     }
 }
 
-void SpotTreeView::rowChanged()
-{
-    // TODO
-    printf("RowChanged\n");
-}
-
 void SpotTreeView::addRow(BaseSpot::spotType type)
 {
     // Disable spot selection event
@@ -262,9 +254,10 @@ void SpotTreeView::addRow(BaseSpot::spotType type)
 
     // Create and add new row
     // TODO Add new row according to its type
+    const auto newName = getNewName(M("TP_LOCALLAB_SPOTNAME"));
     auto row = *(spotTreeModel->append());
     auto newSpot = std::shared_ptr<BaseSpot>(new BaseSpot(getEditProvider()));
-    newSpot->setSpotName(M("TP_LOCALLAB_SPOTNAME"));
+    newSpot->setSpotName(newName);
     row[spots.spot] = newSpot;
 
     // Append newly spot widgets to widgets list
@@ -362,6 +355,12 @@ void SpotTreeView::deleteRow(const Gtk::TreeModel::iterator& iter)
 
     // Enable spot selection event
     treeViewConn.block(false);
+}
+
+void SpotTreeView::rowChanged()
+{
+    // TODO
+    printf("RowChanged\n");
 }
 
 void SpotTreeView::renderSpotDuplicate(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter)
@@ -546,6 +545,70 @@ bool SpotTreeView::button1Released()
     EditSubscriber::action = EditSubscriber::Action::NONE;
 
     return false; // No need to update preview
+}
+
+Glib::ustring SpotTreeView::getNewName(const Glib::ustring& oldName, Gtk::TreeRow* exceptRow) const
+{
+    // Search if oldName already exists in TreeView
+    bool present = false;
+
+    for (auto &row : spotTreeModel->children()) {
+        if (!exceptRow || !row.equal(*exceptRow)) { // Avoids searching in excluded row
+            std::shared_ptr<BaseSpot> sp = row[spots.spot];
+
+            if (sp->getSpotName() == oldName) {
+                present = true;
+                break;
+            }
+        }
+    }
+
+    if (!present) {
+        // oldName is unique in TreeRow so can be used
+        return oldName;
+    } else {
+        // Create regexp and intermediate variables
+        auto regexp = Glib::Regex::create("\\d+$");
+        Glib::MatchInfo regexpResult;
+        bool endsWithDigits;
+        int startIdx, endIdx;
+
+        // Extract short name from oldName
+        Glib::ustring oldShortName;
+        endsWithDigits = regexp->match(oldName, regexpResult);
+
+        if (endsWithDigits) {
+            regexpResult.fetch_pos(0, startIdx, endIdx); // Get the longest results
+            oldShortName = oldName.substr(0, startIdx);
+        } else {
+            oldShortName = oldName;
+        }
+
+        // Search if oldShortName already exists in TreeView to extract maximum end digit
+        int maxDigit = 0;
+
+        for (auto &row : spotTreeModel->children()) {
+            if (!exceptRow || !row.equal(*exceptRow)) { // Avoids searching in excluded row
+                std::shared_ptr<BaseSpot> sp = row[spots.spot];
+
+                // Extract end digit if short name is equal to shortOldName
+                endsWithDigits = regexp->match(sp->getSpotName(), regexpResult);
+
+                if (endsWithDigits) {
+                    regexpResult.fetch_pos(0, startIdx, endIdx); // Get the longest results
+                    const auto shortName = sp->getSpotName().substr(0, startIdx);
+                    const auto digitStr = sp->getSpotName().substr(startIdx, endIdx);
+                    const int digit = std::stoi(digitStr.c_str());
+
+                    if (shortName == oldShortName) {
+                        maxDigit = rtengine::max(maxDigit, digit);
+                    }
+                }
+            }
+        }
+
+        return oldShortName.append(Glib::ustring::format(++maxDigit));
+    }
 }
 
 //-----------------------------------------------------------------------------
