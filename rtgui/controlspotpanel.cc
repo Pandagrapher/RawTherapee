@@ -444,7 +444,7 @@ bool SpotTreeView::mouseOver(int modifierKey)
                 spot->prelightWidget(false);
             }
 
-            return false; // No need to update preview
+            return true; // Update preview
         }
 
         // Update TreeView row color according to mouse over widget
@@ -463,7 +463,7 @@ bool SpotTreeView::mouseOver(int modifierKey)
                 }
             }
 
-            return false; // No need to update preview
+            return true; // Update preview
         }
     }
 
@@ -535,7 +535,7 @@ bool SpotTreeView::drag1(int modifierKey)
     // Raise event
     // TODO
 
-    return false; // No need to update preview
+    return true; // Update preview
 }
 
 bool SpotTreeView::button1Released()
