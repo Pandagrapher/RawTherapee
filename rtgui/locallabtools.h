@@ -18,15 +18,17 @@
  *  along with RawTherapee.  If not, see <http://www.gnu.org/licenses/>.
  *  2019-2020 Pierre Cabrera <pierre.cab@gmail.com>
  */
-#ifndef _LOCALLABTOOLS_H_
-#define _LOCALLABTOOLS_H_
+#pragma once
 
-#include "curveeditorgroup.h"
-#include "curveeditor.h"
-#include "labgrid.h"
-#include "thresholdadjuster.h"
-#include "toolpanel.h"
 #include "adjuster.h"
+#include "toolpanel.h"
+#include "thresholdadjuster.h"
+#include "curvelistener.h"
+
+class CurveEditorGroup;
+class DiagonalCurveEditor;
+class FlatCurveEditor;
+class LabGrid;
 
 /* ==== LocallabToolListener ==== */
 class LocallabTool;
@@ -38,6 +40,7 @@ public:
 
     virtual void resetOtherMaskView(LocallabTool* current) = 0;
     virtual void toolRemoved(LocallabTool* current) = 0;
+    virtual void foldAllButOne(LocallabTool* except) = 0;
 };
 
 
@@ -169,7 +172,7 @@ private:
 };
 
 /* ==== LocallabColor ==== */
-class LocallabColor:
+class LocallabColor final:
     public Gtk::VBox,
     public LocallabTool,
     public ThresholdAdjusterListener
@@ -310,7 +313,7 @@ private:
 };
 
 /* ==== LocallabExposure ==== */
-class LocallabExposure:
+class LocallabExposure final:
     public Gtk::VBox,
     public LocallabTool
 {
@@ -410,7 +413,7 @@ private:
 };
 
 /* ==== LocallabShadow ==== */
-class LocallabShadow:
+class LocallabShadow final:
     public Gtk::VBox,
     public LocallabTool
 {
@@ -493,7 +496,7 @@ private:
 };
 
 /* ==== LocallabVibrance ==== */
-class LocallabVibrance:
+class LocallabVibrance final:
     public Gtk::VBox,
     public LocallabTool,
     public ThresholdAdjusterListener,
@@ -577,7 +580,7 @@ private:
 };
 
 /* ==== LocallabSoft ==== */
-class LocallabSoft:
+class LocallabSoft final:
     public Gtk::VBox,
     public LocallabTool
 {
@@ -623,7 +626,7 @@ private:
 };
 
 /* ==== LocallabBlur ==== */
-class LocallabBlur:
+class LocallabBlur final:
     public Gtk::VBox,
     public LocallabTool,
     public ThresholdAdjusterListener
@@ -737,7 +740,7 @@ private:
 };
 
 /* ==== LocallabTone ==== */
-class LocallabTone:
+class LocallabTone final:
     public Gtk::VBox,
     public LocallabTool
 {
@@ -806,7 +809,7 @@ private:
 };
 
 /* ==== LocallabRetinex ==== */
-class LocallabRetinex:
+class LocallabRetinex final:
     public Gtk::VBox,
     public LocallabTool
 {
@@ -906,7 +909,7 @@ private:
 };
 
 /* ==== LocallabSharp ==== */
-class LocallabSharp:
+class LocallabSharp final:
     public Gtk::VBox,
     public LocallabTool
 {
@@ -951,7 +954,7 @@ private:
 };
 
 /* ==== LocallabContrast ==== */
-class LocallabContrast:
+class LocallabContrast final:
     public Gtk::VBox,
     public LocallabTool,
     public ThresholdAdjusterListener
@@ -1099,7 +1102,7 @@ private:
 };
 
 /* ==== LocallabCBDL ==== */
-class LocallabCBDL:
+class LocallabCBDL final:
     public Gtk::VBox,
     public LocallabTool
 {
@@ -1172,7 +1175,7 @@ private:
 };
 
 /* ==== LocallabLog ==== */
-class LocallabLog:
+class LocallabLog final:
     public Gtk::VBox,
     public LocallabTool
 {
@@ -1218,7 +1221,7 @@ private:
 
 
 /* ==== LocallabMask ==== */
-class LocallabMask:
+class LocallabMask final:
     public Gtk::VBox,
     public LocallabTool,
     public ThresholdAdjusterListener
@@ -1301,5 +1304,3 @@ private:
 
     void updateMaskGUI();
 };
-
-#endif

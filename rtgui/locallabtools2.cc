@@ -21,9 +21,11 @@
 #include "locallabtools.h"
 
 #include "options.h"
-#include "../rtengine/procparams.h"
-#include "locallab.h"
 #include "rtimage.h"
+#include "curveeditor.h"
+#include "curveeditorgroup.h"
+
+#include "../rtengine/procparams.h"
 
 #define MINNEIGH 0.1
 #define MAXNEIGH 1500

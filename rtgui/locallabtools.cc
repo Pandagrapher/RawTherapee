@@ -21,10 +21,12 @@
 #include "locallabtools.h"
 
 #include "options.h"
-#include "../rtengine/procparams.h"
-#include "locallab.h"
-#include "thresholdadjuster.h"
 #include "rtimage.h"
+#include "curveeditor.h"
+#include "curveeditorgroup.h"
+#include "labgrid.h"
+
+#include "../rtengine/procparams.h"
 #include "../rtengine/color.h"
 
 #define MINRAD 1.5
@@ -37,7 +39,7 @@
 #define MAXEXP 1.5
 
 using namespace rtengine;
-using namespace procparams;
+using namespace rtengine::procparams;
 
 extern Options options;
 static double blurSlider2radius(double sval)
@@ -359,7 +361,7 @@ void LocallabTool::foldThemAll(GdkEventButton* event)
 {
     if (event->button == GDK_BUTTON_SECONDARY) {
         if (locToolListener) {
-            (static_cast<Locallab*>(locToolListener))->foldAllButOne(this);
+            locToolListener->foldAllButOne(this);
         }
     }
 }

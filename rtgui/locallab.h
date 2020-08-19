@@ -19,9 +19,6 @@
  *  2017 Jacques Desmis <jdesmis@gmail.com>
  *  2019 Pierre Cabrera <pierre.cab@gmail.com>
  */
-#ifndef _LOCALLAB_H_
-#define _LOCALLAB_H_
-
 #pragma once
 
 #include "controlspotpanel.h"
@@ -189,7 +186,7 @@ public:
     void autoOpenCurve() override;
 
     // Locallab tools expanders management functions
-    void foldAllButOne(LocallabTool* except);
+    void foldAllButOne(LocallabTool* except) override;
     void openAllTools();
 
     // Locallab tools advice tooltips management function
@@ -214,5 +211,3 @@ private:
     // LocallabToolListListener function
     void locallabToolToAdd(const Glib::ustring &toolname) override;
 };
-
-#endif

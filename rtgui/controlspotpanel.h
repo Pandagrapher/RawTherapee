@@ -21,10 +21,11 @@
 
 #include "editcallbacks.h"
 #include "threadutils.h"
-#include "toolpanel.h"
 #include "adjuster.h"
+#include "toolpanel.h"
 #include "locallabspot.h"
 
+#include "../rtengine/coord.h"
 
 /* ==== SpotTreeViewModel ==== */
 class SpotTreeViewModel:

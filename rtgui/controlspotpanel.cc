@@ -17,16 +17,17 @@
  *  along with RawTherapee.  If not, see <http://www.gnu.org/licenses/>.
  *  2018-2020 Pierre Cabrera <pierre.cab@gmail.com>
  */
-
 #include "controlspotpanel.h"
-#include "../rtengine/rt_math.h"
+
 #include "editwidgets.h"
 #include "options.h"
-#include "../rtengine/procparams.h"
 #include "rtimage.h"
 
+#include "../rtengine/rt_math.h"
+#include "../rtengine/procparams.h"
+
 using namespace rtengine;
-using namespace procparams;
+using namespace rtengine::procparams;
 
 extern Options options;
 
