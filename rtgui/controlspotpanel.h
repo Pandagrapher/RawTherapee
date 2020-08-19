@@ -145,6 +145,7 @@ public:
     struct SpotRow {
         Glib::ustring name;
         bool isvisible;
+        int prevMethod; // 0 = Normal, 1 = Excluding
         int shape; // 0 = Ellipse, 1 = Rectangle
         int spotMethod; // 0 = Normal, 1 = Excluding
         int sensiexclu;
@@ -169,6 +170,7 @@ public:
         double balanh;
         double colorde;
         double colorscope;
+        bool activ;
         bool avoid;
         bool blwh;
         bool recurs;
@@ -326,6 +328,7 @@ private:
 
     void controlspotChanged();
 
+    void prevMethodChanged();
     void shapeChanged();
     void spotMethodChanged();
     void shapeMethodChanged();
@@ -337,6 +340,7 @@ private:
 
     void adjusterChanged(Adjuster* a, double newval) override;
 
+    void activChanged();
     void avoidChanged();
     void blwhChanged();
     void recursChanged();
@@ -371,6 +375,7 @@ private:
         Gtk::TreeModelColumn<Glib::ustring> name;
         Gtk::TreeModelColumn<bool> isvisible;
         Gtk::TreeModelColumn<int> curveid; // Associated curve id
+        Gtk::TreeModelColumn<int> prevMethod; // 0 = hide, 1 = show
         Gtk::TreeModelColumn<int> shape; // 0 = Ellipse, 1 = Rectangle
         Gtk::TreeModelColumn<int> spotMethod; // 0 = Normal, 1 = Excluding
         Gtk::TreeModelColumn<int> sensiexclu;
@@ -395,6 +400,7 @@ private:
         Gtk::TreeModelColumn<double> balanh;
         Gtk::TreeModelColumn<double> colorde;
         Gtk::TreeModelColumn<double> colorscope;
+        Gtk::TreeModelColumn<bool> activ;
         Gtk::TreeModelColumn<bool> avoid;
         Gtk::TreeModelColumn<bool> blwh;
         Gtk::TreeModelColumn<bool> recurs;
@@ -444,6 +450,8 @@ private:
     Gtk::Button* const button_visibility_;
     sigc::connection buttonvisibilityconn_;
 
+    MyComboBoxText* const prevMethod_;
+    sigc::connection prevMethodconn_;
     MyComboBoxText* const shape_;
     sigc::connection shapeconn_;
     MyComboBoxText* const spotMethod_;
@@ -480,6 +488,8 @@ private:
     Adjuster* const scopemask_;
     Adjuster* const lumask_;
 
+    Gtk::CheckButton* const activ_;
+    sigc::connection activConn_;
     Gtk::CheckButton* const avoid_;
     sigc::connection avoidConn_;
     Gtk::CheckButton* const blwh_;
@@ -502,6 +512,9 @@ private:
 
     Gtk::ToggleButton* const preview_;
     sigc::connection previewConn_;
+
+    Gtk::HBox* const ctboxshape;
+    Gtk::HBox* const ctboxshapemethod;
 
     // Internal variables
     ControlPanelListener* controlPanelListener;

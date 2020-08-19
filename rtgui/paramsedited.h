@@ -73,6 +73,7 @@ struct RetinexParamsEdited {
     bool slope;
     bool neigh;
     bool offs;
+    bool complexmethod;
     bool retinexMethod;
     bool mapMethod;
     bool viewMethod;
@@ -390,6 +391,7 @@ public:
         // Control spot settings
         bool name;
         bool isvisible;
+        bool prevMethod;
         bool shape;
         bool spotMethod;
         bool wavMethod;
@@ -413,6 +415,7 @@ public:
         bool colorscope;
         bool transitweak;
         bool transitgrad;
+        bool activ;
         bool avoid;
         bool blwh;
         bool recurs;
@@ -468,6 +471,7 @@ public:
         bool rgbcurve;
         bool LHcurve;
         bool HHcurve;
+        bool CHcurve;
         bool invers;
         bool special;
         bool toolcol;
@@ -807,7 +811,6 @@ public:
         bool sensicb;
         bool clarityml;
         bool contresid;
-        bool blurcbdl;
         bool softradiuscb;
         bool enacbMask;
         bool CCmaskcbcurve;
@@ -835,6 +838,35 @@ public:
         bool baselog;
         bool strlog;
         bool anglog;
+        //mask
+        bool visimask;
+        bool complexmask;
+        bool expmask;
+        bool sensimask;
+        bool blendmask;
+        bool blendmaskab;
+        bool softradiusmask;
+        bool enamask;
+        bool fftmask;
+        bool blurmask;
+        bool contmask;
+        bool CCmask_curve;
+        bool LLmask_curve;
+        bool HHmask_curve;
+        bool strumaskmask;
+        bool toolmask;
+        bool radmask;
+        bool lapmask;
+        bool chromask;
+        bool gammask;
+        bool slopmask;
+        bool shadmask;
+        bool str_mask;
+        bool ang_mask;
+        bool HHhmask_curve;
+        bool Lmask_curve;
+        bool LLmask_curvewav;
+        bool csthresholdmask;
 
         LocallabSpotEdited(bool v);
 
@@ -1008,6 +1040,7 @@ struct WaveletParamsEdited {
     bool CLmethod;
     bool Backmethod;
     bool Tilesmethod;
+    bool complexmethod;
     bool daubcoeffmethod;
     bool Dirmethod;
     bool sigma;

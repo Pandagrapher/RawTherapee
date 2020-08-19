@@ -50,6 +50,7 @@ class LocretigainCurve;
 class LocretigainCurverab;
 class LocLHCurve;
 class LocHHCurve;
+class LocCHCurve;
 class LocLLmaskCurve;
 class LocCCmaskCurve;
 class LocHHmaskCurve;
@@ -335,6 +336,7 @@ struct RetinexParams {
     int     stonalwidth;
     int     radius;
 
+    Glib::ustring complexmethod;
     Glib::ustring retinexMethod;
     Glib::ustring retinexcolorspace;
     Glib::ustring gammaretinex;
@@ -976,6 +978,7 @@ struct LocallabParams {
         // Control spot settings
         Glib::ustring name;
         bool isvisible;
+        Glib::ustring prevMethod; // show, hide
         Glib::ustring shape; // ELI, RECT
         Glib::ustring spotMethod; // norm, exc
         Glib::ustring wavMethod; // D2, D4, D6, D10, D14
@@ -999,6 +1002,7 @@ struct LocallabParams {
         double colorscope;
         double transitweak;
         double transitgrad;
+        bool activ;
         bool avoid;
         bool blwh;
         bool recurs;
@@ -1054,6 +1058,7 @@ struct LocallabParams {
         std::vector<double> rgbcurve;
         std::vector<double> LHcurve;
         std::vector<double> HHcurve;
+        std::vector<double> CHcurve;
         bool invers;
         bool special;
         bool toolcol;
@@ -1393,7 +1398,6 @@ struct LocallabParams {
         int sensicb;
         double clarityml;
         int contresid;
-        double blurcbdl;
         double softradiuscb;
         bool enacbMask;
         std::vector<double> CCmaskcbcurve;
@@ -1421,6 +1425,35 @@ struct LocallabParams {
         double baselog;
         double strlog;
         double anglog;
+        // mask
+        bool visimask;
+        int complexmask;
+        bool expmask;
+        int sensimask;
+        double blendmask;
+        double blendmaskab;
+        double softradiusmask;
+        bool enamask;
+        bool fftmask;
+        double blurmask;
+        double contmask;
+        std::vector<double> CCmask_curve;
+        std::vector<double> LLmask_curve;
+        std::vector<double> HHmask_curve;
+        double strumaskmask;
+        bool toolmask;
+        double radmask;
+        double lapmask;
+        double chromask;
+        double gammask;
+        double slopmask;
+        double shadmask;
+        int str_mask;
+        int ang_mask;
+        std::vector<double> HHhmask_curve;
+        std::vector<double> Lmask_curve;
+        std::vector<double> LLmask_curvewav;
+        Threshold<int> csthresholdmask;
 
         LocallabSpot();
 
@@ -1758,6 +1791,7 @@ struct WaveletParams {
     Glib::ustring CLmethod;
     Glib::ustring Backmethod;
     Glib::ustring Tilesmethod;
+    Glib::ustring complexmethod;
     Glib::ustring daubcoeffmethod;
     Glib::ustring CHmethod;
     Glib::ustring Medgreinf;
